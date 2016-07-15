@@ -11,13 +11,13 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
         # In case of infinite-box boundary conditions we need to null
         # the first and the last column. This will lead for the solver
         # to find two additional spurious eigenstates with eigenvalues
-        # near zero. We need to throw them away later.
-        n = n + 2
-        nx = nx + 2
-
-        x_ = scipy.zeros(nx)
-        x_[1:-1] = x
-        x = x_
+        # near zero. Moreover, the first and the last digits of the
+        # eigenvector won't contain any useful information, so we will
+        # need to throw them away. To maintain the length of the
+        # eigenvector we increase the number of elements in the
+        # potential vector by 2 (dummy first and last values).
+        n = n + 2    # spurious eigenstates
+        nx = nx + 2  # extra ticks at beginning and end.
 
         u_ = scipy.zeros(nx)
         u_[1:-1] = u
@@ -36,7 +36,8 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
 
     if boundary == "periodic":
         # In case of periodic boundary conditions we need to modify
-        # both rows and columns of the Hamiltonian.
+        # both rows and columns of the Hamiltonian by inserting -1/dx
+        # at all the zero boundary elements of the matrix.
         hamiltonian[0, 1:] = -1/dx
         hamiltonian[1:, 0] = -1/dx
         hamiltonian[-1, :-1] = -1/dx
@@ -50,6 +51,7 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
     eigenvectors = eigenvectors[:, order]
 
     if boundary == "box":
+        # Throw the spurious states and buffer elements of the vectors.
         eigenvalues = eigenvalues[2:]
         eigenvectors = eigenvectors[1:-1, 2:]
 

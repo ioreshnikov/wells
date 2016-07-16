@@ -3,6 +3,8 @@ import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
 import wells.util
 
+import sys
+
 
 def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
     nx = len(x)
@@ -59,3 +61,72 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
 
 
 fdlp = finite_difference_linear_problem
+
+
+def newton_conjugate_gradient(
+        x, u, l0, l1,
+        precondconst=3,
+        nerror=1E-10, cgerror=1E-2,
+        maxniters=16, maxcgiters=256):
+    nx = len(x)
+    dx = x[1] - x[0]
+
+    # Compute preconditioning operator M.
+    laplacian = wells.util.laplacian(nx, dx)
+    m = precondconst * sparse.eye(nx) - laplacian
+    im = sparse.linalg.inv(m)
+
+    niter = 0
+    while True:
+        # Newton iteration. Apply nonlinear operator and check whether
+        # residue is smaller (everywhere) than desirable Newton method
+        # error.
+        if niter >= maxniters:
+            return None
+
+        r = -l0(u)
+        nerror_ = max(abs(r))
+        if nerror_ < nerror:
+            return u
+
+        # Otherwise, start CG search for an optimal correction.
+        du = 0 * u
+        d = im.dot(r)
+
+        initial = r.conjugate().dot(d)
+        cgiter = 0
+        while True:
+            # Conjugate-gradient iteration. I cannot explain anything
+            # that happens here :)
+            if cgiter >= maxcgiters:
+                break
+
+            l1d = l1(u, d)
+            au = r.conjugate().dot(d)
+            ad = d.conjugate().dot(l1d)
+            a = au / ad
+            du = du + a * d
+            r = r - a * l1d
+            d_ = im.dot(r)
+            bu = r.conjugate().dot(d_)
+            b = bu / au
+            d = d_ + b * d
+
+            cgerror_ = bu
+            if cgerror_ < cgerror * initial:
+                break
+            sys.stderr.write(
+                "%8d %e %12d %e %e\n" % (
+                    niter,
+                    nerror_,
+                    cgiter,
+                    cgerror_,
+                    cgerror * initial))
+
+            cgiter = cgiter + 1
+
+        u = u + du
+        niter = niter + 1
+
+
+ncg = newton_conjugate_gradient

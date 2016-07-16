@@ -1,6 +1,7 @@
 import scipy
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
+import wells.util
 
 
 def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
@@ -23,8 +24,7 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
         u_[1:-1] = u
         u = u_
 
-    laplacian = sparse.diags([1, -2, 1], [-1, 0, +1], (nx, nx))
-    laplacian = 1/dx**2 * laplacian
+    laplacian = wells.util.laplacian(nx, dx)
     potential = sparse.diags(u, 0, (nx, nx))
     hamiltonian = -1/2 * laplacian + potential
 

@@ -15,10 +15,10 @@ parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
                     default="png")
-a = parser.parse_args()
+args = parser.parse_args()
 
 
-workspace = scipy.load(a.input)
+workspace = scipy.load(args.input)
 x = workspace["x"]
 potential = workspace["potential"]
 n = workspace["n"]
@@ -33,15 +33,15 @@ plot.figure()
 
 axs = plot.subplot(1, 1, 1)
 plot.plot(x, potential,
-          color="lightgray",
+          color="gray",
           linestyle="solid",
           label="$U(z)$")
 plot.plot(x, eigenvector + eigenvalue,
-          color="gray",
+          color="blue",
           linestyle="solid",
           label="$\Psi_{%d}(z)$" % n)
 plot.plot(x, solution + eigenvalue,
-          color="black",
+          color="red",
           label=("$A_{%d}(z; \delta_p = %.1f)$" %
                  (n, delta)))
 plot.xlim(-8, +8)
@@ -57,5 +57,6 @@ legend = plot.legend()
 legend.get_frame().set_lw(0.5)
 axs.tick_params(direction="out")
 
-plot.show()
-publisher.publish("mode", "png")
+
+output = args.input.replace(".npz", "")
+publisher.publish(output, "png")

@@ -41,8 +41,15 @@ u = 1/2 * x**2
 u[abs(x) >= 10] = 50
 
 
+# Load input file to use for initial guess.
+if args.input is not None:
+    workspace = scipy.load(args.input)
+    solution = workspace["solution"]
+
+
 # Find the first n eigenstates to use as starting point.
-eigenvalues, eigenvectors = time_independent.fdlp(x, u, args.n + 1, boundary="box")
+eigenvalues, eigenvectors = time_independent.fdlp(
+    x, u, args.n + 1, boundary="box")
 
 
 # Normalize the modes.
@@ -91,10 +98,13 @@ precondition = 3 * sparse.eye(nx, nx, dtype=complex) - laplacian
 
 eigenvalue = eigenvalues[args.n]
 eigenvector = eigenvectors[:, args.n]
-eigenvector = eigenvector
+if args.input is not None and util.energy(x, solution) > 0.1:
+    initial = solution
+else:
+    initial = eigenvector
+
+
 solution = time_independent.ncg(eigenvector, l0, l1, precondition)
-
-
 if solution is None:
     exit()
 

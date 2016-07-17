@@ -64,18 +64,11 @@ fdlp = finite_difference_linear_problem
 
 
 def newton_conjugate_gradient(
-        x, u, l0, l1,
-        precondconst=3,
-        nerror=1E-10, cgerror=1E-2,
+        u, l0, l1, precondition,
+        nerror=1E-10, cgerror=1E-4,
         maxniters=16, maxcgiters=256):
-    nx = len(x)
-    dx = x[1] - x[0]
 
-    # Compute preconditioning operator M.
-    laplacian = wells.util.laplacian(nx, dx)
-    m = precondconst * sparse.eye(nx) - laplacian
-    im = sparse.linalg.inv(m)
-
+    im = linalg.inv(precondition)
     niter = 0
     while True:
         # Newton iteration. Apply nonlinear operator and check whether
@@ -84,7 +77,7 @@ def newton_conjugate_gradient(
         if niter >= maxniters:
             return None
 
-        r = -l0(u)
+        r = -l0(u).dot(u)
         nerror_ = max(abs(r))
         if nerror_ < nerror:
             return u
@@ -97,11 +90,11 @@ def newton_conjugate_gradient(
         cgiter = 0
         while True:
             # Conjugate-gradient iteration. I cannot explain anything
-            # that happens here :)
+            # that happens here. :)
             if cgiter >= maxcgiters:
-                break
+                return None
 
-            l1d = l1(u, d)
+            l1d = l1(u).dot(d)
             au = r.conjugate().dot(d)
             ad = d.conjugate().dot(l1d)
             a = au / ad
@@ -113,8 +106,6 @@ def newton_conjugate_gradient(
             d = d_ + b * d
 
             cgerror_ = bu
-            if cgerror_ < cgerror * initial:
-                break
             sys.stderr.write(
                 "%8d %e %12d %e %e\n" % (
                     niter,
@@ -122,6 +113,8 @@ def newton_conjugate_gradient(
                     cgiter,
                     cgerror_,
                     cgerror * initial))
+            if cgerror_ < cgerror * initial:
+                break
 
             cgiter = cgiter + 1
 

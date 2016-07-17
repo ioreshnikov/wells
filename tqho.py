@@ -104,7 +104,7 @@ else:
     initial = eigenvector
 
 
-solution = time_independent.ncg(eigenvector, l0, l1, precondition)
+solution = time_independent.ncg(initial, l0, l1, precondition)
 if solution is None:
     exit()
 

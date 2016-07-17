@@ -9,8 +9,11 @@ import wells.publisher as publisher
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input",
-                    help="Solution file",
+                    help="solution file",
                     type=str)
+parser.add_argument("--intensity",
+                    help="plot intensity profile",
+                    action="store_true")
 parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
@@ -26,6 +29,11 @@ eigenvalue = workspace["eigenvalue"]
 eigenvector = workspace["eigenvector"]
 delta = workspace["delta"]
 solution = workspace["solution"]
+
+
+if args.intensity:
+    eigenvector = abs(eigenvector)**2
+    solution = abs(solution)**2
 
 
 publisher.init()

@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 
 # Extract the data.
-pattern = re.compile("mode=(.*)_delta=(.*).npz")
+pattern = re.compile(".*mode=(.*)_delta=(.*).npz")
 modes = set([])
 deltas = set([])
 points = []
@@ -50,18 +50,21 @@ for point in points:
     energies[deltas == delta, mode] = energy
 
 
-ymax = energies[deltas == 0, :].max()
+xmin = -4.0
+xmax = 4.0
+# ymax = energies[deltas == 0, :].max()
+ymax = 40.0
 energies[energies == 0] = None
 
-xmin = -5.5
-xmax = 5.5
-dx = 1.5
-bbox = dict(boxstyle="circle, pad=0.2", lw="0.25", fc="white")
+
+dx = 1.0
+bbox = dict(boxstyle="circle, pad=0.2", lw="0.0", fc="white")
 
 
-publisher.init({"figure.figsize": (3.1, 3.1)})
+publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
+axs = plot.subplot(1, 1, 1)
 for n in range(max(modes) + 1):
     plot.plot(deltas, energies[:, n], color="black")
     x = xmax - dx
@@ -69,13 +72,17 @@ for n in range(max(modes) + 1):
     if y > ymax or scipy.isnan(y):
         x = xmin + dx
         y = energies[deltas == x, n]
-    print(x, y)
+        if y > ymax:
+            continue
     plot.text(x, y, str(n),
               ha="center", va="center",
               bbox=bbox, fontsize="x-small")
 plot.xlim(xmin, xmax)
 plot.ylim(0, ymax)
+plot.xticks(scipy.arange(xmin, xmax + 1, 1))
+plot.yticks(scipy.arange(0, ymax + 5, 5))
 plot.xlabel("$\delta_{p}$")
 plot.ylabel("$E_{n}$")
+axs.tick_params(direction="out")
 
 publisher.publish("energies", args.ext)

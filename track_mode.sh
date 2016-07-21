@@ -4,9 +4,9 @@
 LANG=C;
 
 
-n=11;
+n=16;
 
-min=-11.5;
+min=-16.5;
 max=+10.0;
 step=0.1;
 deltas=`seq $min $step $max`;
@@ -18,4 +18,7 @@ for delta in $deltas; do
         command="$command --input $output";
     fi
     output=`$command`;
+    if [ -z "$output" ]; then
+        exit
+    fi
 done

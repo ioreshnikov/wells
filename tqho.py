@@ -78,18 +78,18 @@ def l0(state):
         potential -
         focusing +
         delta)
-    return operator
+    return operator.dot(state)
 
 
 # Linearization operator.
-def l1(state):
+def l1(state, correction):
     focusing = sparse.diags(3 * abs(state)**2, 0, (nx, nx))
     operator = (
         -1/2 * laplacian +
         potential -
         focusing +
         delta)
-    return operator
+    return operator.dot(correction)
 
 
 # Preconditioning operator

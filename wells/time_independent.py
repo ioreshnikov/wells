@@ -77,7 +77,7 @@ def newton_conjugate_gradient(
         if niter >= maxniters:
             return None
 
-        r = -l0(u).dot(u)
+        r = -l0(u)
         nerror_ = max(abs(r))
         if nerror_ < nerror:
             return u
@@ -94,7 +94,7 @@ def newton_conjugate_gradient(
             if cgiter >= maxcgiters:
                 return None
 
-            l1d = l1(u).dot(d)
+            l1d = l1(u, d)
             au = r.conjugate().dot(d)
             ad = d.conjugate().dot(l1d)
             a = au / ad

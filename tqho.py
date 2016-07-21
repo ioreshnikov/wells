@@ -65,9 +65,9 @@ for n in range(args.n + 1):
 
 
 # Define operators for the Newton-CG method.
-laplacian = util.laplacian(nx, dx, dtype=complex)
-potential = sparse.diags(u, 0, (nx, nx), dtype=complex)
-delta = args.delta * sparse.eye(nx, nx, dtype=complex)
+laplacian = util.laplacian(nx, dx)
+potential = sparse.diags(u, 0, (nx, nx))
+delta = args.delta * sparse.eye(nx, nx)
 
 
 # Nonlinear operator.
@@ -93,7 +93,7 @@ def l1(state, correction):
 
 
 # Preconditioning operator
-precondition = 3 * sparse.eye(nx, nx, dtype=complex) - laplacian
+precondition = 3 * sparse.eye(nx, nx) - laplacian
 
 
 eigenvalue = eigenvalues[args.n]

@@ -76,9 +76,9 @@ for n in range(args.n + 1):
 
 
 # Define operators for the Newton-CG method.
-laplacian = util.laplacian(nx, dx, dtype=complex)
-potential = sparse.diags(u, 0, (nx, nx), dtype=complex)
-delta = args.delta * sparse.eye(nx, nx, dtype=complex)
+laplacian = util.laplacian(nx, dx)
+potential = sparse.diags(u, 0, (nx, nx))
+delta = args.delta * sparse.eye(nx, nx)
 loss = args.kappa * sparse.eye(nx, nx)
 pump = args.p * scipy.ones(2*nx)
 pump[nx:] = 0
@@ -132,7 +132,8 @@ def l1(state, correction):
 
 
 # Preconditioning operator
-precondition = 3 * sparse.eye(2*nx, 2*nx, dtype=complex) - laplacian
+# precondition = 3 * sparse.eye(2*nx, 2*nx) - laplacian
+precondition = 1 * sparse.eye(2*nx, 2*nx)
 
 
 eigenvalue = eigenvalues[args.n]
@@ -149,7 +150,7 @@ else:
 
 solution = time_independent.ncg(
     initial, l0, l1, precondition,
-    maxniters=512, cgerror=1E-3)
+    maxniters=2048, cgerror=1E-2)
 if solution is None:
     exit()
 

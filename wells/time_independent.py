@@ -66,7 +66,7 @@ fdlp = finite_difference_linear_problem
 def newton_conjugate_gradient(
         u, l0, l1, precondition,
         nerror=1E-10, cgerror=1E-4,
-        maxniters=16, maxcgiters=256):
+        maxniters=16, maxcgiters=512):
 
     im = linalg.inv(precondition)
     niter = 0

@@ -11,9 +11,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input",
                     help="solution file",
                     type=str)
-parser.add_argument("--intensity",
-                    help="plot intensity profile",
-                    action="store_true")
 parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
@@ -30,10 +27,9 @@ eigenvector = workspace["eigenvector"]
 delta = workspace["delta"]
 solution = workspace["solution"]
 
-
-if args.intensity:
-    eigenvector = abs(eigenvector)**2
-    solution = abs(solution)**2
+complex_ = False
+if max(abs(solution.imag)) > 1E-3:
+    complex_ = True
 
 
 publisher.init()
@@ -48,10 +44,22 @@ plot.plot(x, eigenvector + eigenvalue,
           color="blue",
           linestyle="solid",
           label="$\Psi_{%d}(z)$" % n)
-plot.plot(x, solution + eigenvalue,
-          color="red",
-          label=("$A_{%d}(z; \delta_p = %.1f)$" %
-                 (n, delta)))
+if complex_:
+    plot.plot(x, solution.real + eigenvalue,
+              color="red",
+              linestyle="solid",
+              label=("$\Re A_{%d}(z; \delta_p = %.1f)$" %
+                     (n, delta)))
+    plot.plot(x, solution.imag + eigenvalue,
+              color="red",
+              linestyle="dotted",
+              label=("$\Im A_{%d}(z; \delta_p = %.1f)$" %
+                     (n, delta)))
+else:
+    plot.plot(x, solution + eigenvalue,
+              color="red",
+              label=("$A_{%d}(z; \delta_p = %.1f)$" %
+                     (n, delta)))
 plot.xlim(-8, +8)
 plot.ylim(
     1.25 * min(min(eigenvector + eigenvalue),

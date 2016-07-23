@@ -63,7 +63,7 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
 fdlp = finite_difference_linear_problem
 
 
-def naive_newton(u, l0, l1, error=1E-10, maxiters=256):
+def newton(u, l0, l1, error=1E-10, maxiters=256):
     it = 0
     while True:
         if it >= maxiters:

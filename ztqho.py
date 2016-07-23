@@ -141,7 +141,7 @@ if args.input is not None:
 else:
     initial[:] = 0
 
-solution = time_independent.naive_newton(
+solution = time_independent.newton(
     initial, l0, l1,
     maxiters=2**11, error=1E-10)
 if solution is None:

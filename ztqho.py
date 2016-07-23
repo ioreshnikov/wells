@@ -61,6 +61,7 @@ if args.input is not None:
 # Find the first n eigenstates to use as starting point.
 eigenvalues, eigenvectors = time_independent.fdlp(
     x, u, args.n + 1, boundary="box")
+eigenvectors = eigenvectors.real
 
 
 # Normalize the modes.
@@ -143,7 +144,7 @@ else:
 
 solution = time_independent.naive_newton(
     initial, l0, l1,
-    maxiters=2**14, error=1E-10)
+    maxiters=2**8, error=1E-10)
 if solution is None:
     exit()
 

@@ -50,7 +50,7 @@ if args.input is not None:
 # Find the first n eigenstates to use as starting point.
 eigenvalues, eigenvectors = time_independent.fdlp(
     x, u, args.n + 1, boundary="box")
-
+eigenvectors = eigenvectors.real
 
 # Normalize the modes.
 for n in range(args.n + 1):
@@ -82,18 +82,17 @@ def l0(state):
 
 
 # Linearization operator.
-def l1(state, correction):
+def l1(state, correction=None):
     focusing = sparse.diags(3 * abs(state)**2, 0, (nx, nx))
     operator = (
         -1/2 * laplacian +
         potential -
         focusing +
         delta)
-    return operator.dot(correction)
-
-
-# Preconditioning operator
-precondition = 3 * sparse.eye(nx, nx) - laplacian
+    if correction is None:
+        return operator
+    else:
+        return operator.dot(correction)
 
 
 eigenvalue = eigenvalues[args.n]
@@ -104,7 +103,7 @@ else:
     initial = eigenvector
 
 
-solution = time_independent.ncg(initial, l0, l1, precondition)
+solution = time_independent.naive_newton(initial, l0, l1)
 if solution is None:
     exit()
 

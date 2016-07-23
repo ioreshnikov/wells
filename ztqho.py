@@ -102,16 +102,11 @@ def l0(state):
         focusing +
         delta +
         loss)
-    result = operator.dot(state) - pump
-    result[0] = 0
-    result[nx-1] = 0
-    result[nx] = 0
-    result[2*nx-1] = 0
-    return result
+    return operator.dot(state) - pump
 
 
 # Linearization operator.
-def l1(state, correction):
+def l1(state, correction=None):
     real = state[:nx]
     imag = state[nx:]
     power = (real**2 + imag**2)
@@ -123,12 +118,10 @@ def l1(state, correction):
         focusing +
         delta +
         loss)
-    result = operator.dot(correction)
-    result[0] = 0
-    result[nx-1] = 0
-    result[nx] = 0
-    result[2*nx-1] = 0
-    return result
+    if correction is None:
+        return operator
+    else:
+        return operator.dot(correction)
 
 
 # Preconditioning operator
@@ -148,9 +141,9 @@ else:
     else:
         initial[nx:] = eigenvector
 
-solution = time_independent.ncg(
-    initial, l0, l1, precondition,
-    maxniters=2048, cgerror=1E-2)
+solution = time_independent.naive_newton(
+    initial, l0, l1,
+    maxiters=2**14, error=1E-10)
 if solution is None:
     exit()
 

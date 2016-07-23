@@ -3,19 +3,29 @@
 
 LANG=C;
 
+
 p=0.01;
 kappa=0.001;
 
-n=0;
 
-label="0";
-start=2.0;
-stop=-0.5;
-step=-0.05;
+mode=2;
+start=-1.50;
+stop=+2.00;
+step=+0.05;
 deltas=`seq $start $step $stop`;
 
+
+label="$mode";
+if (( $(echo "$step > 0" | bc -l) )); then
+    label="$label+";
+else
+    label="$label-";
+fi
+
+
+output="raw/mode=${mode}_delta=${start}.npz";
 for delta in $deltas; do
-    command="./ztqho.py --n $n --delta $delta --p $p --kappa $kappa --label $label";
+    command="./ztqho.py --delta $delta --p $p --kappa $kappa --label $label";
     if [ -n "$output" ]; then
         command="$command --input $output";
     fi

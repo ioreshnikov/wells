@@ -30,13 +30,10 @@ parser.add_argument("--n",
                     help="Mode number",
                     type=int,
                     default=0)
-parser.add_argument("--zero",
-                    help="Start from zero",
-                    action="store_true")
 parser.add_argument("--label",
                     help="Auxiliary label",
                     type=str,
-                    default=None)
+                    default="0")
 args = parser.parse_args()
 
 
@@ -142,27 +139,17 @@ if args.input is not None:
     initial[:nx] = solution.real
     initial[nx:] = solution.imag
 else:
-    if args.zero:
-        initial[:] = 0
-    else:
-        initial[nx:] = eigenvector
+    initial[:] = 0
 
 solution = time_independent.naive_newton(
     initial, l0, l1,
-    maxiters=2**10, error=1E-10)
+    maxiters=2**11, error=1E-10)
 if solution is None:
     exit()
 
 
-if args.label is not None:
-    label = args.label
-elif args.zero:
-    label = "0"
-else:
-    label = "e"
-
 filename = ("mode=%d_delta=%.2f_pump=%.2E_loss=%.2E_%s.npz" %
-            (args.n, args.delta, args.p, args.kappa, label))
+            (args.n, args.delta, args.p, args.kappa, args.label))
 workspace = {}
 workspace["x"] = x
 workspace["potential"] = u

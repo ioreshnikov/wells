@@ -73,7 +73,7 @@ for key, curve in curves.items():
 publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
-xmin = -2.0
+xmin = -3.0
 xmax = 2.0
 ymax = 10.0
 
@@ -107,5 +107,5 @@ plot.yticks(scipy.arange(0, ymax + dy, dy))
 plot.xlabel("$\delta_{p}$")
 plot.ylabel("$E_{n}$")
 axs.tick_params(direction="out")
-
+plot.show()
 publisher.publish("energies", args.ext)

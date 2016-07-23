@@ -77,67 +77,6 @@ def naive_newton(u, l0, l1, error=1E-10, maxiters=256):
             return u
 
         du = linalg.spsolve(l1(u), r)
+
         u = u + du
         it = it + 1
-
-
-def newton_conjugate_gradient(
-        u, l0, l1, precondition,
-        nerror=1E-10, cgerror=1E-4,
-        maxniters=16, maxcgiters=512):
-
-    im = linalg.inv(precondition)
-    niter = 0
-    while True:
-        # Newton iteration. Apply nonlinear operator and check whether
-        # residue is smaller (everywhere) than desirable Newton method
-        # error.
-        if niter >= maxniters:
-            return None
-
-        r = -l0(u)
-        nerror_ = max(abs(r))
-        if nerror_ < nerror:
-            return u
-
-        # Otherwise, start CG search for an optimal correction.
-        du = 0 * u
-        d = im.dot(r)
-
-        initial = r.conjugate().dot(d)
-        cgiter = 0
-        while True:
-            # Conjugate-gradient iteration. I cannot explain anything
-            # that happens here. :)
-            if cgiter >= maxcgiters:
-                return None
-
-            l1d = l1(u, d)
-            au = r.conjugate().dot(d)
-            ad = d.conjugate().dot(l1d)
-            a = au / ad
-            du = du + a * d
-            r = r - a * l1d
-            d_ = im.dot(r)
-            bu = r.conjugate().dot(d_)
-            b = bu / au
-            d = d_ + b * d
-
-            cgerror_ = bu
-            sys.stderr.write(
-                "%8d %e %12d %e %e\n" % (
-                    niter,
-                    nerror_,
-                    cgiter,
-                    cgerror_,
-                    cgerror * initial))
-            if cgerror_ < cgerror * initial:
-                break
-
-            cgiter = cgiter + 1
-
-        u = u + du
-        niter = niter + 1
-
-
-ncg = newton_conjugate_gradient

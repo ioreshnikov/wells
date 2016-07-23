@@ -23,9 +23,10 @@ args = parser.parse_args()
 
 
 # Regular expressions for file names.
-patterns = [re.compile("mode=(\d+)_delta=(.*)_pump=(.*)_loss=(.*)_0.npz"),
-            re.compile("mode=(\d+)_delta=(.*)_pump=(.*)_loss=(.*)_e.npz"),
-            re.compile("mode=(\d+)_delta=(.*).npz")]
+patterns = [
+    re.compile("mode=(\d+)_delta=(.*)_pump=(.*)_loss=(.*)_(.*).npz"),
+    re.compile("mode=(\d+)_delta=(.*)_pump=(.*)_loss=(.*).npz"),
+    re.compile("mode=(\d+)_delta=(.*).npz")]
 
 
 # First pass: collect the curve points.
@@ -40,11 +41,12 @@ for filename in args.input:
         if len(groups) == 2:
             mode, delta = groups
             pump = loss = 0
-        if len(groups) == 4:
-            mode, delta, pump, loss = groups
+            label = None
+        if len(groups) == 5:
+            mode, delta, pump, loss, label = groups
         mode = int(mode)
         delta, pump, loss = map(float, (delta, pump, loss))
-        key = (idx, mode, pump, loss)
+        key = (idx, mode, pump, loss, label)
 
         if key not in curves:
             curves[key] = [], []
@@ -98,10 +100,10 @@ for key, curve in curves.items():
         plot.text(x, y, str(mode),
                   ha="center", va="center",
                   bbox=bbox, fontsize="x-small")
-# plot.xlim(xmin, xmax)
-# plot.ylim(0, ymax)
-# plot.xticks(scipy.arange(xmin, xmax + dx, dx))
-# plot.yticks(scipy.arange(0, ymax + dy, dy))
+plot.xlim(xmin, xmax)
+plot.ylim(0, ymax)
+plot.xticks(scipy.arange(xmin, xmax + dx, dx))
+plot.yticks(scipy.arange(0, ymax + dy, dy))
 plot.xlabel("$\delta_{p}$")
 plot.ylabel("$E_{n}$")
 axs.tick_params(direction="out")

@@ -33,6 +33,10 @@ parser.add_argument("--n",
 parser.add_argument("--zero",
                     help="Start from zero",
                     action="store_true")
+parser.add_argument("--label",
+                    help="Auxiliary label",
+                    type=str,
+                    default=None)
 args = parser.parse_args()
 
 
@@ -110,9 +114,14 @@ def l0(state):
 def l1(state, correction=None):
     real = state[:nx]
     imag = state[nx:]
-    power = (real**2 + imag**2)
-    focusing = sparse.diags(3*power, 0, (nx, nx))
-    focusing = sparse.bmat([[focusing, None], [None, focusing]])
+    plus = (real**2 + imag**2)
+    minus = (real**2 - imag**2)
+    cross = 2 * real * imag
+    plus = sparse.diags(plus,   0, (nx, nx))
+    minus = sparse.diags(minus, 0, (nx, nx))
+    cross = sparse.diags(cross, 0, (nx, nx))
+    focusing = sparse.bmat([[2 * plus + minus, cross],
+                            [-cross, 2 * plus + minus]])
     operator = (
         -1/2 * laplacian +
         potential -
@@ -126,16 +135,12 @@ def l1(state, correction=None):
 
 
 # Preconditioning operator
-# precondition = 3 * sparse.eye(2*nx, 2*nx) - laplacian
-precondition = 1 * sparse.eye(2*nx, 2*nx)
-
-
 eigenvalue = eigenvalues[args.n]
 eigenvector = eigenvectors[:, args.n]
 initial = scipy.zeros(2*nx)
 if args.input is not None:
-    initial[nx:] = solution.real
-    initial[:nx] = solution.imag
+    initial[:nx] = solution.real
+    initial[nx:] = solution.imag
 else:
     if args.zero:
         initial[:] = 0
@@ -144,14 +149,20 @@ else:
 
 solution = time_independent.naive_newton(
     initial, l0, l1,
-    maxiters=2**8, error=1E-10)
+    maxiters=2**10, error=1E-10)
 if solution is None:
     exit()
 
 
+if args.label is not None:
+    label = args.label
+elif args.zero:
+    label = "0"
+else:
+    label = "e"
+
 filename = ("mode=%d_delta=%.2f_pump=%.2E_loss=%.2E_%s.npz" %
-            (args.n, args.delta, args.p, args.kappa,
-             "0" if args.zero else "e"))
+            (args.n, args.delta, args.p, args.kappa, label))
 workspace = {}
 workspace["x"] = x
 workspace["potential"] = u

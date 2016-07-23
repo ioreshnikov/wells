@@ -4,10 +4,10 @@
 LANG=C;
 
 
-n=16;
+n=2;
 
-min=-16.5;
-max=+10.0;
+min=-2.5;
+max=+2.0;
 step=0.1;
 deltas=`seq $min $step $max`;
 

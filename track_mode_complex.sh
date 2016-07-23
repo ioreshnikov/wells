@@ -3,19 +3,19 @@
 
 LANG=C;
 
-p=0.001;
+p=0.01;
 kappa=0.001;
 
 n=0;
 
-start=-0.45;
-stop=2.0;
-step=+0.05;
+label="0";
+start=2.0;
+stop=-0.5;
+step=-0.05;
 deltas=`seq $start $step $stop`;
 
-
 for delta in $deltas; do
-    command="./ztqho.py --n $n --delta $delta --p $p --kappa $kappa";
+    command="./ztqho.py --n $n --delta $delta --p $p --kappa $kappa --label $label";
     if [ -n "$output" ]; then
         command="$command --input $output";
     fi

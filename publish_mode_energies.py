@@ -5,6 +5,7 @@ import argparse
 import os.path
 import re
 import scipy
+import scipy.interpolate as interpolate
 import wells.util as util
 import wells.publisher as publisher
 
@@ -73,14 +74,14 @@ for key, curve in curves.items():
 publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
-xmin = -3.0
+xmin = -4.0
 xmax = +2.0
 
 ymin = 00.0
-ymax = 12.0
+ymax = 10.0
 
 dx = 1.0
-dy = 2.0
+dy = 10/6 * dx
 bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
 axs = plot.subplot(1, 1, 1)
@@ -95,17 +96,18 @@ for key, curve in curves.items():
         x = xmax - dx
         y = energies[deltas == x]
         if y > ymax or scipy.isnan(y):
-            x = xmin + dx
-            y = energies[deltas == x]
-            if y > ymax:
+            f = interpolate.interp1d(energies, deltas)
+            y = ymax - dy
+            x = f(y)
+            if x < xmin + dx or x > xmax - dx:
                 continue
         plot.text(x, y, str(mode),
                   ha="center", va="center",
                   bbox=bbox, fontsize="x-small")
 plot.xlim(xmin, xmax)
 plot.ylim(ymin, ymax)
-plot.xticks(scipy.arange(xmin, xmax + dx, dx))
-plot.yticks(scipy.arange(0, ymax + dy, dy))
+plot.xticks(scipy.arange(xmin, xmax + 1, 1))
+plot.yticks(scipy.arange(0, ymax + 2, 2))
 plot.xlabel("$\delta_{p}$")
 plot.ylabel("$E_{n}(\delta_p)$")
 axs.tick_params(direction="out")

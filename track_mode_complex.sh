@@ -8,14 +8,14 @@ p=0.05;
 kappa=0.001;
 
 
-mode=2;
+mode=4;
 label="$mode+";
 scale=0.95;
 phase=0.10;
 
-start=-4.00;
-stop=2.00;
-step=0.05;
+start=-5.00;
+stop=-2.00;
+step=+0.05;
 deltas=`seq $start $step $stop`;
 
 

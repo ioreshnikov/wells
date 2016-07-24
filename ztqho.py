@@ -5,6 +5,7 @@ import argparse
 
 import scipy
 import scipy.sparse as sparse
+import scipy.optimize as optimize
 
 import wells.time_independent as time_independent
 import wells.util as util
@@ -30,6 +31,14 @@ parser.add_argument("--n",
                     help="Mode number",
                     type=int,
                     default=0)
+parser.add_argument("--scale",
+                    help="Initial guess scaling",
+                    type=float,
+                    default=0.0)
+parser.add_argument("--phase",
+                    help="Initial guess phase rotation",
+                    type=float,
+                    default=0.0)
 parser.add_argument("--label",
                     help="Auxiliary label",
                     type=str,
@@ -107,45 +116,20 @@ def l0(state):
     return operator.dot(state) - pump
 
 
-# Linearization operator.
-def l1(state, correction=None):
-    real = state[:nx]
-    imag = state[nx:]
-    plus = (real**2 + imag**2)
-    minus = (real**2 - imag**2)
-    cross = 2 * real * imag
-    plus = sparse.diags(plus,   0, (nx, nx))
-    minus = sparse.diags(minus, 0, (nx, nx))
-    cross = sparse.diags(cross, 0, (nx, nx))
-    focusing = sparse.bmat([[2 * plus + minus, cross],
-                            [-cross, 2 * plus + minus]])
-    operator = (
-        -1/2 * laplacian +
-        potential -
-        focusing +
-        delta +
-        loss)
-    if correction is None:
-        return operator
-    else:
-        return operator.dot(correction)
-
-
 # Preconditioning operator
 eigenvalue = eigenvalues[args.n]
 eigenvector = eigenvectors[:, args.n]
 initial = scipy.zeros(2*nx)
 if args.input is not None:
+    solution = scipy.exp(1j * args.phase) * args.scale * solution
     initial[:nx] = solution.real
     initial[nx:] = solution.imag
 else:
     initial[:] = 0
 
-solution = time_independent.newton(
-    initial, l0, l1,
-    maxiters=2**11, error=1E-10)
-if solution is None:
-    exit()
+
+# Solve using Newton-Krylov method.
+solution = optimize.newton_krylov(l0, initial)
 
 
 filename = ("mode=%d_delta=%.2f_pump=%.2E_loss=%.2E_%s.npz" %

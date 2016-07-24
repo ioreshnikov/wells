@@ -103,7 +103,7 @@ else:
     initial = eigenvector
 
 
-solution = time_independent.naive_newton(initial, l0, l1)
+solution = time_independent.newton(initial, l0, l1)
 if solution is None:
     exit()
 

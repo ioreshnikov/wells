@@ -74,12 +74,14 @@ publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
 xmin = -3.0
-xmax = 2.0
-ymax = 10.0
+xmax = +2.0
+
+ymin = 00.0
+ymax = 12.0
 
 dx = 1.0
-dy = 5.0
-bbox = dict(boxstyle="circle, pad=0.2", lw="0.0", fc="white")
+dy = 2.0
+bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
 axs = plot.subplot(1, 1, 1)
 for key, curve in curves.items():
@@ -101,11 +103,11 @@ for key, curve in curves.items():
                   ha="center", va="center",
                   bbox=bbox, fontsize="x-small")
 plot.xlim(xmin, xmax)
-plot.ylim(0, ymax)
+plot.ylim(ymin, ymax)
 plot.xticks(scipy.arange(xmin, xmax + dx, dx))
 plot.yticks(scipy.arange(0, ymax + dy, dy))
 plot.xlabel("$\delta_{p}$")
-plot.ylabel("$E_{n}$")
+plot.ylabel("$E_{n}(\delta_p)$")
 axs.tick_params(direction="out")
 plot.show()
 publisher.publish("energies", args.ext)

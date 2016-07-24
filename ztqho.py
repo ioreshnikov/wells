@@ -16,11 +16,11 @@ parser.add_argument("--delta",
                     help="Detuning between the pump and the resonance",
                     type=float,
                     default=0.0)
-parser.add_argument("--kappa",
+parser.add_argument("--loss",
                     help="Linear losses",
                     type=float,
                     default=0.0)
-parser.add_argument("--p",
+parser.add_argument("--pump",
                     help="Pump",
                     type=float,
                     default=0.0)
@@ -90,8 +90,8 @@ for n in range(args.n + 1):
 laplacian = util.laplacian(nx, dx)
 potential = sparse.diags(u, 0, (nx, nx))
 delta = args.delta * sparse.eye(nx, nx)
-loss = args.kappa * sparse.eye(nx, nx)
-pump = args.p * scipy.ones(2*nx)
+loss = args.loss * sparse.eye(nx, nx)
+pump = args.pump * scipy.ones(2*nx)
 pump[nx:] = 0
 
 laplacian = sparse.bmat([[laplacian, None], [None, laplacian]])
@@ -133,7 +133,7 @@ solution = optimize.newton_krylov(l0, initial)
 
 
 filename = ("mode=%d_delta=%.2f_pump=%.2E_loss=%.2E_%s.npz" %
-            (args.n, args.delta, args.p, args.kappa, args.label))
+            (args.n, args.delta, args.pump, args.loss, args.label))
 workspace = {}
 workspace["x"] = x
 workspace["potential"] = u
@@ -142,6 +142,8 @@ workspace["eigenvalue"] = eigenvalue
 workspace["eigenvector"] = eigenvector
 workspace["delta"] = args.delta
 workspace["solution"] = solution[:nx] + 1j * solution[nx:]
+workspace["pump"] = args.pump
+workspace["loss"] = args.loss
 
 
 scipy.savez(filename, **workspace)

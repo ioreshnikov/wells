@@ -74,14 +74,14 @@ for key, curve in curves.items():
 publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
-xmin = -4.0
+xmin = -3.0
 xmax = +2.0
 
 ymin = 00.0
 ymax = 10.0
 
 dx = 1.0
-dy = 10/6 * dx
+dy = 2.0
 bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
 axs = plot.subplot(1, 1, 1)

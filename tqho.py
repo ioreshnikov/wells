@@ -4,6 +4,7 @@
 import argparse
 
 import scipy
+import scipy.optimize as optimize
 import scipy.sparse as sparse
 
 import wells.time_independent as time_independent
@@ -81,20 +82,6 @@ def l0(state):
     return operator.dot(state)
 
 
-# Linearization operator.
-def l1(state, correction=None):
-    focusing = sparse.diags(3 * abs(state)**2, 0, (nx, nx))
-    operator = (
-        -1/2 * laplacian +
-        potential -
-        focusing +
-        delta)
-    if correction is None:
-        return operator
-    else:
-        return operator.dot(correction)
-
-
 eigenvalue = eigenvalues[args.n]
 eigenvector = eigenvectors[:, args.n]
 if args.input is not None and util.energy(x, solution) > 0.1:
@@ -103,7 +90,7 @@ else:
     initial = eigenvector
 
 
-solution = time_independent.newton(initial, l0, l1)
+solution = optimize.newton_krylov(l0, initial)
 if solution is None:
     exit()
 

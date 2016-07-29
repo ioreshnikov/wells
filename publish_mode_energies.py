@@ -47,19 +47,25 @@ for filename in args.input:
             mode, delta, pump, loss, label = groups
         mode = int(mode)
         delta, pump, loss = map(float, (delta, pump, loss))
-        key = (idx, mode, pump, loss, label)
+
+        workspace = scipy.load(filename)
+        stable = None
+        try:
+            stable = bool(workspace["stable"])
+        except:
+            pass
+
+        key = (idx, mode, pump, loss, label, stable)
 
         if key not in curves:
             curves[key] = [], []
         deltas, energies = curves[key]
 
-        # Load the file to calculate the energy.
-        workspace = scipy.load(filename)
         energy = util.energy(workspace["x"], workspace["solution"])
         deltas.append(delta)
         energies.append(energy)
-        break
 
+        break
 
 # Second pass, sort the data points in each of the curves.
 for key, curve in curves.items():
@@ -74,10 +80,10 @@ for key, curve in curves.items():
 publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
-xmin = -3.0
-xmax = +2.0
+xmin = -5.0
+xmax = +1.0
 
-ymin = 00.0
+ymin = -0.5
 ymax = 10.0
 
 dx = 1.0
@@ -86,16 +92,17 @@ bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
 axs = plot.subplot(1, 1, 1)
 for key, curve in curves.items():
-    idx, mode, *_ = key
+    idx, mode, *_, stable = key
     deltas, energies = curve
+    color = "black"
     linestyle = "solid"
     if idx == 2:
         linestyle = "dotted"
-    plot.plot(deltas, energies, color="black", linestyle=linestyle)
+    plot.plot(deltas, energies, color=color, linestyle=linestyle)
     if idx == 2:
         x = xmax - dx
         y = energies[deltas == x]
-        if y > ymax or scipy.isnan(y):
+        if y > ymax - 2*dx or scipy.isnan(y):
             f = interpolate.interp1d(energies, deltas)
             y = ymax - dy
             x = f(y)

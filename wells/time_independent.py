@@ -62,22 +62,3 @@ def finite_difference_linear_problem(x, u, n, which="SM", boundary="box"):
 
 
 fdlp = finite_difference_linear_problem
-
-
-def newton(u, l0, l1, error=1E-10, maxiters=256):
-    it = 0
-    while True:
-        if it >= maxiters:
-            return None
-
-        r = -l0(u)
-        error_ = max(abs(r))
-        sys.stderr.write("\t%d\t%e\n" % (it, error_))
-
-        if error_ < error:
-            return u
-
-        du = linalg.spsolve(l1(u), r)
-
-        u = u + du
-        it = it + 1

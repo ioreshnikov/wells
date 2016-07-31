@@ -12,6 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input",
                     help="solution file",
                     type=str)
+parser.add_argument("--trust",
+                    help="skip the file if the spectrum is already present",
+                    action='store_true')
 args = parser.parse_args()
 
 
@@ -24,6 +27,14 @@ try:
     loss = workspace["loss"]
 except:
     loss = 0
+
+
+if args.trust:
+    files = workspace.files
+    if ("stability_eigenvalues" in files and
+        "stability_eigenvectors" in files and
+        "stable" in files):
+        exit()
 
 
 nx = len(x)

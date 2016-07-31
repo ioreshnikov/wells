@@ -1,21 +1,22 @@
 #!/bin/bash
 
 
+set -x
 LANG=C;
 
 
-pump=0.05;
+pump=0.500;
 loss=0.001;
 
 
-mode=4;
+mode=2;
 label="$mode+";
-scale=0.95;
-phase=0.10;
+scale=0.90;  # Was 0.95
+phase=0.10;  # ... 0.10
 
-start=-5.00;
-stop=-2.00;
-step=+0.05;
+start=-2.90;
+stop=-4.50;
+step=-0.01;
 deltas=`seq $start $step $stop`;
 
 

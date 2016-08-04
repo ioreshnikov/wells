@@ -81,8 +81,8 @@ for key, curve in curves.items():
 publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
-xmin = -3.0
-xmax = +3.0
+xmin = -5.0
+xmax = +5.0
 
 ymin = 00.0
 ymax = 20.0

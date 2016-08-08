@@ -2,11 +2,8 @@
 
 
 import argparse
-
 import scipy as s
 import wells.time_dependent as time_dependent
-
-import matplotlib.pyplot as plot
 
 
 parser = argparse.ArgumentParser()
@@ -28,14 +25,14 @@ parser.add_argument("--pump",
 args = parser.parse_args()
 
 
-tmin = 0.0
-tmax = 8.0
-nt = 2**8
+tmin = 00.0
+tmax = 50.0
+nt = 2**10
 t = s.linspace(tmin, tmax, nt)
 
-xmin = -128.00
-xmax = +128.00
-nx = 2**12
+xmin = -32.00
+xmax = +32.00
+nx = 2**10
 x = s.linspace(xmin, xmax, nx)
 
 potential = s.zeros(x.shape)
@@ -46,18 +43,38 @@ potential[abs(x) >= 10] = 50
 input = s.zeros(x.shape, dtype=complex)
 if args.input is not None:
     workspace = s.load(args.input)
-    solution = workspace["solution"]
-    input[nx/2 - 512:nx/2 + 512] = solution
+    if "solution" in workspace.files:
+        # Using stationary solution as an initial condition.
+        # half = int(nx/2) - 1
+        # input[half - 512:half + 512] = workspace["solution"]
+        input = workspace["solution"]
+    if "states" in workspace.files:
+        # Using own data file to extract the input state.
+        input = workspace["states"][-1, :]
 
 
 t, x, k, states, spectra = time_dependent.integrate(
     t, x, input, potential, args.delta, args.loss, args.pump)
 
-image = abs(states)
-image = image / image.max()
 
-plot.figure()
-plot.pcolormesh(x, t, image, cmap="magma")
-plot.colorbar()
-plot.xlim(-32, +32)
-plot.show()
+if args.input is not None:
+    filename = args.input.replace(".npz", ".propagation.npz")
+else:
+    filename = ("delta=%.2f_pump=%.2E_loss=%.2E.npz" %
+                (args.delta, args.pump, args.loss))
+
+
+workspace = {}
+workspace["t"] = t
+workspace["x"] = x
+workspace["k"] = k
+workspace["states"] = states
+workspace["spectra"] = spectra
+workspace["input"] = input
+workspace["delta"] = args.delta
+workspace["loss"] = args.loss
+workspace["pump"] = args.pump
+
+
+s.savez(filename, **workspace)
+print(filename)

@@ -26,7 +26,7 @@ args = parser.parse_args()
 
 
 tmin = 00.0
-tmax = 50.0
+tmax = 70.0
 nt = 2**10
 t = s.linspace(tmin, tmax, nt)
 

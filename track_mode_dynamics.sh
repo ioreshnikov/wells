@@ -10,12 +10,12 @@ prefix="DissipativeP=0.50";
 pump=0.5;
 loss=0.001;
 
-start=-3.60;
+start=-5.00;
 stop=5.0;
 step=0.10;
 deltas=`seq $start $step $stop`;
 
-mode=2;
+mode=4;
 label="$mode+";
 
 

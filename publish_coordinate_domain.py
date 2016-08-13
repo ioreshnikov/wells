@@ -28,21 +28,23 @@ x = workspace["x"]
 states = workspace["states"]
 
 
-ticks = scipy.arange(args.min, t.max() + 10, 10)
-image = abs(states)
+tticks = scipy.arange(args.min, t.max() + 10, 10)
+xticks = scipy.arange(-8, +12, 4)
+image = abs(states).T**0.50
 
 
-publisher.init({"figure.figsize": (1.4, 2.4)})
+publisher.init({"figure.figsize": (2.8, 1.4)})
 plot.figure()
 
 axs = plot.subplot(1, 1, 1)
 plot.pcolormesh(
-    x, t, image, cmap="inferno", rasterized=True)
-plot.xlim(-5, +5)
-plot.ylim(args.min, t.max())
-plot.yticks(ticks)
-plot.xlabel("$z$")
-plot.ylabel("$t$")
+    t, x, image, cmap="hot", rasterized=True)
+plot.xlim(tticks.min(), tticks.max())
+plot.ylim(xticks.min(), xticks.max())
+plot.xticks(tticks)
+plot.yticks(xticks)
+plot.ylabel("$z$")
+plot.xlabel("$t$")
 axs.tick_params(direction="out")
 
 prefix = args.input.replace(".npz", "")

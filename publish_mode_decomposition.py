@@ -85,7 +85,7 @@ idx = scipy.argsort(coefficients[0])[::-1]
 mode_numbers = mode_numbers[idx]
 
 
-publisher.init({"figure.figsize": (1.4, 2.4)})
+publisher.init({"figure.figsize": (2.8, 1.4)})
 plot.figure()
 
 tticks = scipy.arange(args.min, t.max() + 10, 10)
@@ -98,22 +98,22 @@ for i, n in enumerate(mode_numbers):
         linestyle = "solid"
     else:
         linestyle = "dashed"
-    plot.plot(coefficients[:, n], t, label=str(n))
+    plot.plot(t, coefficients[:, n], label=str(n))
     if i < args.label:
         idx = int(len(t) * 0.1)
-        x = coefficients[idx, n]
-        y = t[idx] + args.min
+        x = t[idx] + args.min
+        y = coefficients[idx, n]
         plot.text(x, y, str(n),
                   ha="center", va="center",
                   bbox=bbox, fontsize="x-small")
 if args.energy:
-    plot.plot(energy, t, color="black", linestyle="dashed")
+    plot.plot(t, energy, color="black", linestyle="dashed")
 if args.estimate:
-    plot.plot(estimate, t, color="black", linestyle="dotted")
-plot.xticks(cticks)
-plot.ylim(args.min, t.max())
-plot.yticks(tticks)
-plot.xlabel(r"$\left< A, \Psi_n \right>$")
+    plot.plot(t, estimate, color="black", linestyle="dotted")
+plot.yticks(cticks)
+plot.xlim(args.min, t.max())
+plot.xticks(tticks)
+plot.ylabel(r"$\left< A, \Psi_n \right>$")
 plot.ylabel(r"$t$")
 # plot.legend()
 axs.tick_params(direction="out")

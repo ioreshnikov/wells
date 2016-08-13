@@ -15,13 +15,24 @@ parser.add_argument("input",
                     help="raw propagation data",
                     type=str)
 parser.add_argument("--energy",
-                    help="plot true and estimated energy",
+                    help="plot true energy",
                     action="store_true")
+parser.add_argument("--estimate",
+                    help="plot estimated energy",
+                    action="store_true")
+parser.add_argument("--min",
+                    help="minimum t coordinate",
+                    type=float,
+                    default=0.0)
 parser.add_argument("--num",
                     help=("either number of modes (single argument) or "
                           "mode numbers (multiple arguments)"),
                     type=int,
                     default=10)
+parser.add_argument("--label",
+                    help="number of modes to label",
+                    type=int,
+                    default=0)
 parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
@@ -50,32 +61,62 @@ for n in range(args.num + 1):
     eigenvectors[:, n] = eigenvector
 
 
-mode_numbers = range(args.num)
-mode_numbers = [n for n in mode_numbers if n % 2 == 0]
-
+mode_numbers = scipy.arange(args.num)
 
 coefficients = scipy.zeros((len(t), len(mode_numbers)))
-for nidx, n in enumerate(mode_numbers):
+for n in mode_numbers:
     eigenvector = eigenvectors[:, n]
-    for tidx, _ in enumerate(t):
-        state = states[tidx, :]
+    for idx, _ in enumerate(t):
+        state = states[idx, :]
         coefficient = scipy.trapz(eigenvector * state, x)
-        coefficients[tidx, nidx] = abs(coefficient)
+        coefficients[idx, n] = abs(coefficient)
 
-total = scipy.zeros(len(t))
-for nidx, n in enumerate(mode_numbers):
-    total += coefficients[:, nidx]**2
+estimate = scipy.zeros(len(t))
+for n in mode_numbers:
+    estimate += coefficients[:, n]**2
 
 energy = scipy.zeros(len(t))
-for tidx, _ in enumerate(t):
-    energy[tidx] = util.energy(x, states[tidx, :])
+for idx, _ in enumerate(t):
+    energy[idx] = util.energy(x, states[idx, :])
 
 
+# Sort the modes by maximum value at zero.
+idx = scipy.argsort(coefficients[0])[::-1]
+mode_numbers = mode_numbers[idx]
+
+
+publisher.init({"figure.figsize": (1.4, 2.4)})
 plot.figure()
-for nidx, n in enumerate(mode_numbers):
-    plot.plot(t, coefficients[:, nidx], label=n)
+
+tticks = scipy.arange(args.min, t.max() + 10, 10)
+cticks = scipy.arange(0.0, coefficients.max() + 1.0, 1.0)
+bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
+
+axs = plot.subplot(1, 1, 1)
+for i, n in enumerate(mode_numbers):
+    if n % 2 == 0:
+        linestyle = "solid"
+    else:
+        linestyle = "dashed"
+    plot.plot(coefficients[:, n], t, label=str(n))
+    if i < args.label:
+        idx = int(len(t) * 0.1)
+        x = coefficients[idx, n]
+        y = t[idx] + args.min
+        plot.text(x, y, str(n),
+                  ha="center", va="center",
+                  bbox=bbox, fontsize="x-small")
 if args.energy:
-    plot.plot(t, total, color="black", linestyle="dotted", label="total")
-    plot.plot(t, energy, color="black", linestyle="solid", label="energy")
-plot.xlabel("$t$")
-plot.show()
+    plot.plot(energy, t, color="black", linestyle="dashed")
+if args.estimate:
+    plot.plot(estimate, t, color="black", linestyle="dotted")
+plot.xticks(cticks)
+plot.ylim(args.min, t.max())
+plot.yticks(tticks)
+plot.xlabel(r"$\left< A, \Psi_n \right>$")
+plot.ylabel(r"$t$")
+# plot.legend()
+axs.tick_params(direction="out")
+
+prefix = args.input.replace(".npz", "")
+publisher.publish(prefix + ".modes", args.ext)

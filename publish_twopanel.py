@@ -13,7 +13,7 @@ parser.add_argument("input",
                     help="raw propagation data",
                     type=str)
 parser.add_argument("--min",
-                    help="minimum z coordinate",
+                    help="minimum t coordinate",
                     type=float,
                     default=0.0)
 parser.add_argument("--ext",

@@ -89,14 +89,14 @@ axs = plot.subplot(1, 1, 1)
 for key, curve in curves.items():
     idx, mode, *_ = key
     deltas, rates = curve
-    color = "black"
-    if mode == 2:
-        color = "orangered"
-    if mode == 4:
-        color = "forestgreen"
-    if mode == 6:
-        color = "mediumpurple"
-    plot.plot(deltas, rates, color=color)
+    # color = "black"
+    # if mode == 2:
+    #     color = "red"
+    # if mode == 4:
+    #     color = "green"
+    # if mode == 6:
+    #     color = "mediumpurple"
+    plot.plot(deltas, rates)
     x = xmax - dx
     y = rates[deltas == x]
     plot.text(x, y, str(mode),

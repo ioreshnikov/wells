@@ -48,6 +48,7 @@ for filename in args.input:
         delta, pump, loss = map(float, (delta, pump, loss))
 
         workspace = scipy.load(filename)
+
         stable = None
         try:
             stable = bool(workspace["stable"])
@@ -124,7 +125,7 @@ for key, curve in curves.items():
         plot.plot(
             deltas_,
             energies_,
-            color="orangered",
+            color="red",
             linestyle="solid",
             zorder=2)
     if idx == 1 and mode % 2 == 0:

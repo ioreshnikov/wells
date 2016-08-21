@@ -40,6 +40,9 @@ potential = 1/2 * x**2
 potential[abs(x) >= 10] = 50
 
 
+delta = args.delta
+pump = args.pump
+loss = args.loss
 input = s.zeros(x.shape, dtype=complex)
 if args.input is not None:
     workspace = s.load(args.input)
@@ -51,12 +54,17 @@ if args.input is not None:
     if "states" in workspace.files:
         # Using own data file to extract the input state.
         input = workspace["states"][-1, :]
+    delta = workspace["delta"]
+    pump = workspace["pump"]
+    loss = workspace["loss"]
 
 
 absorber = 200 * (1/s.cosh((x - x.min()) / 1.0) +
                   1/s.cosh((x - x.max()) / 1.0))
 t, x, k, states, spectra = time_dependent.integrate(
-    t, x, input, potential, args.delta, args.loss, args.pump)
+    t, x, input, potential,
+    delta, loss, pump,
+    absorber)
 
 
 if args.input is not None:

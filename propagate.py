@@ -53,6 +53,8 @@ if args.input is not None:
         input = workspace["states"][-1, :]
 
 
+absorber = 200 * (1/s.cosh((x - x.min()) / 1.0) +
+                  1/s.cosh((x - x.max()) / 1.0))
 t, x, k, states, spectra = time_dependent.integrate(
     t, x, input, potential, args.delta, args.loss, args.pump)
 

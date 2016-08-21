@@ -4,7 +4,7 @@ import scipy.integrate
 import sys
 
 
-def integrate(t, x, input, potential, delta, loss, pump):
+def integrate(t, x, input, potential, delta, loss, pump, absorber):
     nt = len(t)
     nx = len(x)
 
@@ -24,6 +24,8 @@ def integrate(t, x, input, potential, delta, loss, pump):
         nonlinearity += - potential * state
         nonlinearity += 1j * loss * state
         nonlinearity += pump
+        nonlinearity += 1j * absorber * (abs(state)**2 - abs(input)**2) * state
+
         return 1j * 1/exp_ * fft.fft(nonlinearity)
 
     solver = scipy.integrate.ode(rhs)

@@ -39,7 +39,6 @@ potential = s.zeros(x.shape)
 potential = 1/2 * x**2
 potential[abs(x) >= 10] = 50
 
-
 delta = args.delta
 pump = args.pump
 loss = args.loss

@@ -28,12 +28,15 @@ x = workspace["x"]
 states = workspace["states"]
 
 
-tticks = scipy.arange(args.min, t.max() + 10, 10)
-xticks = scipy.arange(-8, +12, 4)
-image = abs(states).T**0.50
+tticks = scipy.arange(args.min, t.max() + 50, 50)
+xticks = scipy.arange(-15, +20, 5)
+
+image = abs(states)
+# image = image / image.max()
+# image = 20 * scipy.log10(image)
 
 
-publisher.init({"figure.figsize": (2.8, 1.4)})
+publisher.init({"figure.figsize": (2.8, 1.6)})
 plot.figure()
 
 axs = plot.subplot(1, 1, 1)
@@ -41,6 +44,7 @@ plot.pcolormesh(
     t, x, image, cmap="hot", rasterized=True)
 plot.xlim(tticks.min(), tticks.max())
 plot.ylim(xticks.min(), xticks.max())
+plot.clim(-30, 0)
 plot.xticks(tticks)
 plot.yticks(xticks)
 plot.ylabel("$z$")

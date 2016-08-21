@@ -11,7 +11,7 @@ def integrate(t, x, input, potential, delta, loss, pump):
     dx = x[1] - x[0]
 
     k = 2*s.pi * fft.fftfreq(nx, dx)
-    d = -1/2 * k**2
+    d = - delta - 1/2 * k**2
 
     spectrum = fft.fft(input)
     spectrum_ = spectrum
@@ -20,16 +20,16 @@ def integrate(t, x, input, potential, delta, loss, pump):
         exp_ = s.exp(1j * d * t)
         spectrum = exp_ * spectrum_
         state = fft.ifft(spectrum)
-        nonlinearity = abs(state)**2 * state
-        nonlinearity += -potential * state
+        nonlinearity  = abs(state)**2 * state
+        nonlinearity += - potential * state
+        nonlinearity += 1j * loss * state
         nonlinearity += pump
-        nonlinearity += -(delta - 1j * loss) * state
         return 1j * 1/exp_ * fft.fft(nonlinearity)
 
     solver = scipy.integrate.ode(rhs)
     solver.set_integrator("zvode",
                           rtol=1E-6,
-                          atol=1E-8,
+                          atol=1E-10,
                           nsteps=2048)
     solver.set_initial_value(spectrum_, 0)
 

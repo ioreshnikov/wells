@@ -25,9 +25,9 @@ parser.add_argument("--pump",
 args = parser.parse_args()
 
 
-tmin = 00.0
-tmax = 70.0
-nt = 2**10
+tmin = 000.0
+tmax = 400.0
+nt = 2**14
 t = s.linspace(tmin, tmax, nt)
 
 xmin = -32.00

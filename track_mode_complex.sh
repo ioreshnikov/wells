@@ -5,7 +5,7 @@ set -x
 LANG=C;
 
 
-pump=0.750;
+pump=0.500;
 loss=0.001;
 
 

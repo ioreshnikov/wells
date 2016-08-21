@@ -4,6 +4,7 @@
 import argparse
 import matplotlib.pyplot as plot
 import scipy
+import scipy.signal
 import scipy.special
 import wells.time_independent as time_independent
 import wells.publisher as publisher
@@ -70,6 +71,9 @@ for n in mode_numbers:
         state = states[idx, :]
         coefficient = scipy.trapz(eigenvector * state, x)
         coefficients[idx, n] = abs(coefficient)
+# coefficients[coefficients == 0] = None
+# coefficients = scipy.log10(coefficients)
+
 
 estimate = scipy.zeros(len(t))
 for n in mode_numbers:
@@ -85,22 +89,28 @@ idx = scipy.argsort(coefficients[0])[::-1]
 mode_numbers = mode_numbers[idx]
 
 
-publisher.init({"figure.figsize": (2.8, 1.4)})
+# Moving average smoothing.
+# window = scipy.ones(64) / 64
+# for n in mode_numbers:
+#     coefficients[:, n] = scipy.signal.convolve(
+#         coefficients[:, n], window, mode="same")
+
+
+publisher.init({"figure.figsize": (2.8, 1.6)})
 plot.figure()
 
 tticks = scipy.arange(args.min, t.max() + 10, 10)
-cticks = scipy.arange(0.0, coefficients.max() + 1.0, 1.0)
 bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
 axs = plot.subplot(1, 1, 1)
 for i, n in enumerate(mode_numbers):
     if n % 2 == 0:
-        linestyle = "solid"
+        color = "black"
     else:
-        linestyle = "dashed"
-    plot.plot(t, coefficients[:, n], label=str(n))
+        color = "red"
+    plot.semilogy(t, coefficients[:, n], color=color, label=str(n))
     if i < args.label:
-        idx = int(len(t) * 0.1)
+        idx = int(len(t) * 0.05)
         x = t[idx] + args.min
         y = coefficients[idx, n]
         plot.text(x, y, str(n),
@@ -110,13 +120,14 @@ if args.energy:
     plot.plot(t, energy, color="black", linestyle="dashed")
 if args.estimate:
     plot.plot(t, estimate, color="black", linestyle="dotted")
-plot.yticks(cticks)
 plot.xlim(args.min, t.max())
 plot.xticks(tticks)
+plot.xlabel(r"$t$")
+plot.ylim(10**-6, 10)
 plot.ylabel(r"$\left< A, \Psi_n \right>$")
-plot.ylabel(r"$t$")
 # plot.legend()
 axs.tick_params(direction="out")
+plot.show()
 
 prefix = args.input.replace(".npz", "")
 publisher.publish(prefix + ".modes", args.ext)

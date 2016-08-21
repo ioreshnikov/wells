@@ -37,13 +37,14 @@ def integrate(t, x, input, potential, delta, loss, pump, absorber):
 
     spectra_ = s.zeros((nt, nx), dtype=complex)
     spectra_[0, :] = spectrum_
+    # Preallocate return matrices in advance.
+    spectra = s.zeros((nt, nx), dtype=complex)
+    states = s.zeros((nt, nx), dtype=complex)
     for i in range(1, nt):
         sys.stderr.write("\rIntegrating: %-3.2f%%" % (100 * i/nt))
         spectra_[i, :] = solver.integrate(t[i])
     sys.stderr.write("\r")
 
-    spectra = s.zeros((nt, nx), dtype=complex)
-    states = s.zeros((nt, nx), dtype=complex)
     for i in range(0, nt):
         spectra[i, :] = s.exp(1j * d * t[i]) * spectra_[i, :]
         states[i, :] = fft.ifft(spectra[i, :])

@@ -44,7 +44,7 @@ publisher.init({"figure.figsize": (2.8, 2.4)})
 prefix = args.input.replace(".propagation.npz", "")
 
 for n in range(num_windows):
-    print("Window: %d/%d" % (n, num_windows))
+    print("Window: %d/%d" % (n+1, num_windows))
 
     start = n * winsize
     stop = start + winsize
@@ -64,13 +64,19 @@ for n in range(num_windows):
         cmap="magma",
         rasterized=True)
     plot.xlim(-20, +20)
+    plot.ylim(t_.min(), t_.max())
     plot.clim(-60, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
+    plot.yticks(
+        scipy.arange(
+            round(t_.min()),
+            round(t_.max()) + 1,
+            10))
     plot.xlabel("$z$")
     plot.ylabel("$t$")
     plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
     axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n) + "_timedomain", args.ext)
+    publisher.publish(prefix + "_" + str(n+1) + "_timedomain", args.ext)
     plot.close()
 
     print("\tFrequency spectrum.")
@@ -95,7 +101,7 @@ for n in range(num_windows):
     plot.ylabel("$\omega$")
     plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
     axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n) + "_spectrum1", args.ext)
+    publisher.publish(prefix + "_" + str(n+1) + "_spectrum1", args.ext)
     plot.close()
 
     print("\tFrequency and wavenumber spectrum.")
@@ -120,5 +126,5 @@ for n in range(num_windows):
     plot.ylabel("$\omega$")
     plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
     axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n) + "_spectrum2", args.ext)
+    publisher.publish(prefix + "_" + str(n+1) + "_spectrum2", args.ext)
     plot.close()

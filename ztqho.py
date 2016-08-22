@@ -47,9 +47,9 @@ args = parser.parse_args()
 
 
 # Coordinate grid parameters.
-minx = -32
-maxx = +32
-nx = 2**10
+minx = -64
+maxx = +64
+nx = 2**11
 dx = (minx - maxx) / (nx - 1)
 
 # Coordinate grid.

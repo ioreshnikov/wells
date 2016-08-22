@@ -25,9 +25,9 @@ parser.add_argument("--pump",
 args = parser.parse_args()
 
 
-tmin = 000.0
-tmax = 400.0
-nt = 2**14
+tmin = 00.0
+tmax = 50.0
+nt = 2**11
 t = s.linspace(tmin, tmax, nt)
 
 xmin = -32.00
@@ -58,8 +58,8 @@ if args.input is not None:
     loss = workspace["loss"]
 
 
-absorber = 200 * (1/s.cosh((x - x.min()) / 1.0) +
-                  1/s.cosh((x - x.max()) / 1.0))
+absorber = 200 * (1/s.cosh((x - x.min()) / 2.0) +
+                  1/s.cosh((x - x.max()) / 2.0))
 t, x, k, states, spectra = time_dependent.integrate(
     t, x, input, potential,
     delta, loss, pump,

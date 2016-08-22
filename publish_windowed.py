@@ -65,7 +65,7 @@ for n in range(num_windows):
         rasterized=True)
     plot.xlim(-20, +20)
     plot.ylim(t_.min(), t_.max())
-    plot.clim(-60, 0)
+    plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
     plot.yticks(
         scipy.arange(
@@ -94,7 +94,7 @@ for n in range(num_windows):
         rasterized=True)
     plot.xlim(-20, +20)
     plot.ylim(-60, +60)
-    plot.clim(-60, 0)
+    plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
     plot.yticks(scipy.arange(-60, +80, 20))
     plot.xlabel("$z$")
@@ -119,7 +119,7 @@ for n in range(num_windows):
         rasterized=True)
     plot.xlim(-20, +20)
     plot.ylim(-60, +60)
-    plot.clim(-60, 0)
+    plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
     plot.yticks(scipy.arange(-60, +80, 20))
     plot.xlabel("$k_z$")

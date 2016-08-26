@@ -122,6 +122,12 @@ eigenvector = eigenvectors[:, args.n]
 initial = scipy.zeros(2*nx)
 if args.input is not None:
     solution = scipy.exp(1j * args.phase) * args.scale * solution
+    # real = scipy.zeros(nx)
+    # imag = scipy.zeros(nx)
+    # real[int(nx/2-nx/4):int(nx/2+nx/4)] = solution.real
+    # imag[int(nx/2-nx/4):int(nx/2+nx/4)] = solution.imag
+    # initial[:nx] = real
+    # initial[nx:] = imag
     initial[:nx] = solution.real
     initial[nx:] = solution.imag
 else:

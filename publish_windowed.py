@@ -63,7 +63,7 @@ for n in range(num_windows):
         x, t_, image,
         cmap="magma",
         rasterized=True)
-    plot.xlim(-20, +20)
+    # plot.xlim(-20, +20)
     plot.ylim(t_.min(), t_.max())
     plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
@@ -92,7 +92,7 @@ for n in range(num_windows):
         x, f, image,
         cmap="magma",
         rasterized=True)
-    plot.xlim(-20, +20)
+    # plot.xlim(-20, +20)
     plot.ylim(-60, +60)
     plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))
@@ -117,7 +117,7 @@ for n in range(num_windows):
         k, f, image,
         cmap="magma",
         rasterized=True)
-    plot.xlim(-20, +20)
+    # plot.xlim(-20, +20)
     plot.ylim(-60, +60)
     plot.clim(-80, 0)
     plot.xticks(scipy.arange(-20, +30, 10))

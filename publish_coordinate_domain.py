@@ -43,7 +43,7 @@ plot.pcolormesh(
     x, t, image, cmap="magma", rasterized=True)
 plot.xlim(xticks.min(), xticks.max())
 plot.ylim(tticks.min(), tticks.max())
-plot.clim(-80, 0)
+plot.clim(-60, 0)
 plot.xticks(xticks)
 plot.yticks(tticks)
 plot.xlabel("$z$")

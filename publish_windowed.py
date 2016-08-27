@@ -31,6 +31,7 @@ x = workspace["x"]
 k = workspace["k"]
 input = workspace["input"]
 states = workspace["states"]
+absorber = workspace["absorber"]
 
 
 winsize = args.win / t.max() * len(t)
@@ -66,9 +67,10 @@ for n in range(num_windows):
         cmap="magma",
         rasterized=True)
     # plot.xlim(-20, +20)
+    plot.xlim(x.min(), x.max())
     plot.ylim(t_.min(), t_.max())
     plot.clim(-80, 0)
-    plot.xticks(scipy.arange(-20, +30, 10))
+    # plot.xticks(scipy.arange(-20, +30, 10))
     plot.yticks(
         scipy.arange(
             round(t_.min()),
@@ -79,6 +81,37 @@ for n in range(num_windows):
     plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
     axs.tick_params(direction="out")
     publisher.publish(prefix + "_" + str(n+1) + "_timedomain", args.ext)
+    plot.close()
+
+    print("\tAbsorption strength.")
+    t_ = t[window]
+    states_ = states[window, :]
+    image = scipy.zeros(states_.shape)
+    for i in range(0, winsize):
+        # image[i, :] = absorber
+        image[i, :] = absorber * (abs(states_[i, :])**2 - abs(input)**2)
+    image = scipy.log10(abs(image))
+
+    plot.figure()
+    axs = plot.subplot(1, 1, 1)
+    plot.pcolormesh(
+        x, t_, image,
+        cmap="magma",
+        rasterized=True)
+    # plot.xlim(-20, +20)
+    plot.xlim(x.min(), x.max())
+    plot.ylim(t_.min(), t_.max())
+    # plot.xticks(scipy.arange(-20, +30, 10))
+    plot.yticks(
+        scipy.arange(
+            round(t_.min()),
+            round(t_.max()) + 1,
+            10))
+    plot.xlabel("$z$")
+    plot.ylabel("$t$")
+    plot.colorbar()
+    axs.tick_params(direction="out")
+    publisher.publish(prefix + "_" + str(n+1) + "_absorption", args.ext)
     plot.close()
 
     # print("\tFrequency spectrum.")

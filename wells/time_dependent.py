@@ -24,7 +24,7 @@ def integrate(t, x, input, potential, delta, loss, pump, absorber):
         nonlinearity += - potential * state
         nonlinearity += 1j * loss * state
         nonlinearity += pump
-        nonlinearity += 1j * absorber * (abs(state)**2 - abs(input)**2) * state
+        nonlinearity += 1j * absorber * (abs(state) - abs(input)) * state
 
         return 1j * 1/exp_ * fft.fft(nonlinearity)
 

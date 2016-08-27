@@ -25,14 +25,14 @@ parser.add_argument("--pump",
 args = parser.parse_args()
 
 
-tmin = 00.0
-tmax = 50.0
-nt = 2**8
+tmin = 000.0
+tmax = 500.0
+nt = 2**10
 t = s.linspace(0, tmax - tmin, nt)
 
 xmin = -128.00
 xmax = +128.00
-nx = 2**12
+nx = 2**11
 x = s.linspace(xmin, xmax, nx)
 
 potential = s.zeros(x.shape)
@@ -49,7 +49,7 @@ if args.input is not None:
         # Using stationary solution as an initial condition.
         # half = int(nx/2) - 1
         # input[half - 512:half + 512] = workspace["solution"]
-        input = workspace["solution"]
+        input = workspace["solution"][::2]
     if "states" in workspace.files:
         # Using own data file to extract the input state.
         input = workspace["states"][-1, :]
@@ -58,9 +58,15 @@ if args.input is not None:
     loss = workspace["loss"]
 
 
-absamp = 0
+absamp = 500
 absorber = absamp * (1/s.cosh((x - x.min()) / 4.0) +
                      1/s.cosh((x - x.max()) / 4.0))
+absorber[abs(x) < 32] = 0
+
+# import matplotlib.pyplot as plot
+# plot.semilogy(x, abs(absorber))
+# plot.show()
+# exit()
 
 
 t, x, k, states, spectra = time_dependent.integrate(
@@ -89,6 +95,7 @@ workspace["input"] = input
 workspace["delta"] = args.delta
 workspace["loss"] = args.loss
 workspace["pump"] = args.pump
+workspace["absorber"] = absorber
 
 
 s.savez(filename, **workspace)

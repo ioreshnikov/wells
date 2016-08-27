@@ -25,14 +25,14 @@ parser.add_argument("--pump",
 args = parser.parse_args()
 
 
-tmin = 000.0
-tmax = 300.0
-nt = 2**11
-t = s.linspace(tmin, tmax, nt)
+tmin = 00.0
+tmax = 50.0
+nt = 2**8
+t = s.linspace(0, tmax - tmin, nt)
 
-xmin = -64.00
-xmax = +64.00
-nx = 2**11
+xmin = -128.00
+xmax = +128.00
+nx = 2**12
 x = s.linspace(xmin, xmax, nx)
 
 potential = s.zeros(x.shape)
@@ -59,8 +59,10 @@ if args.input is not None:
 
 
 absamp = 0
-absorber = absamp * (1/s.cosh((x - x.min()) / 2.0) +
-                     1/s.cosh((x - x.max()) / 2.0))
+absorber = absamp * (1/s.cosh((x - x.min()) / 4.0) +
+                     1/s.cosh((x - x.max()) / 4.0))
+
+
 t, x, k, states, spectra = time_dependent.integrate(
     t, x, input, potential,
     delta, loss, pump,
@@ -69,7 +71,9 @@ t, x, k, states, spectra = time_dependent.integrate(
 
 if args.input is not None:
     filename = args.input.replace(".npz", "")
-    filename = filename + "_absamp=%.2f.propagation.npz" % absamp
+    filename = (filename +
+                "_absorber=%.2f_tmin=%.2f_tmax=%.2f.npz"
+                % (absamp, tmin, tmax))
 else:
     filename = ("delta=%.2f_pump=%.2E_loss=%.2E.npz" %
                 (args.delta, args.pump, args.loss))

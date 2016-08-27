@@ -9,16 +9,15 @@ pump=0.500;
 loss=0.001;
 
 
-mode=0;
+mode=2;
 label="$mode-";
-scale=0.90;
+scale=-0.90;
 phase=0.00;
 
-start=5.00;
-stop=-0.50;
-step=-0.10;
+start=-1.40;
+stop=-1.50;
+step=-0.01;
 deltas=`seq $start $step $stop`;
-
 
 output="Conservative128/mode=${mode}_delta=${start}.npz";
 for delta in $deltas; do

@@ -26,8 +26,8 @@ args = parser.parse_args()
 
 
 tmin = 000.0
-tmax = 500.0
-nt = 2**10
+tmax = 400.0
+nt = 2**11
 t = s.linspace(0, tmax - tmin, nt)
 
 xmin = -128.00
@@ -35,9 +35,11 @@ xmax = +128.00
 nx = 2**11
 x = s.linspace(xmin, xmax, nx)
 
+
 potential = s.zeros(x.shape)
 potential = 1/2 * x**2
 potential[abs(x) >= 10] = 50
+
 
 delta = args.delta
 pump = args.pump

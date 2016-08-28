@@ -22,18 +22,18 @@ parser.add_argument("--loss",
                     help="Linear losses",
                     type=float,
                     default=0.0)
-parser.add_argument("--tmin",
+parser.add_argument("--mint",
                     help="Start time",
                     type=float,
                     default=0.0)
-parser.add_argument("--tmax",
+parser.add_argument("--maxt",
                     help="End time",
                     type=float,
                     default=50.0)
 parser.add_argument("--nt",
                     help="Number of time steps in the output",
                     type=float,
-                    default=2**10)
+                    default=2**12)
 args = parser.parse_args()
 
 
@@ -75,17 +75,17 @@ if args.input is not None:
 
 filename = (
     filename +
-    "delta=%.2f_pump=%.2E_loss=%.2E_tmin=%.2f_tmax_%.2f_nt=%d.npz" %
-    (delta, pump, loss, args.tmin, args.tmax, args.nt))
+    "delta=%.2f_pump=%.2E_loss=%.2E_mint=%.2f_maxt_%.2f_nt=%d.npz" %
+    (delta, pump, loss, args.mint, args.maxt, args.nt))
 
 
-absorber = (1000 *
+absorber = (0000 *
             (1/s.cosh((x - x.min()) / 8.0) +
              1/s.cosh((x - x.max()) / 8.0)))
 absorber[abs(x) < 64] = 0
 
 
-t = s.linspace(args.tmin, args.tmax, args.nt)
+t = s.linspace(args.mint, args.maxt, args.nt)
 k, states, spectra = propagate.pnlse.integrate(
     t - t.min(), x, input, potential,
     delta, pump, loss,

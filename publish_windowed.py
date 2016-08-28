@@ -67,11 +67,15 @@ for n in range(num_windows):
 
     t_ = t[window]
     states_ = states[window, :]
+
+    t_ = t_[::2]
+    f = f[::2]
+    states_ = states_[::2, :]
     spectra_ = fft.fft(states_, axis=0)
 
     if args.timedomain:
         print("\tTime domain.")
-        image = abs(states_) - background
+        image = abs(abs(states_) - abs(background))
         image = image / image.max()
         image = 20 * scipy.log10(image)
 
@@ -82,9 +86,8 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
-        # plot.xlim(x.min(), x.max())
         plot.ylim(t_.min(), t_.max())
-        plot.clim(-80, 0)
+        plot.clim(-60, 0)
         # plot.xticks(scipy.arange(-20, +21, 10))
         plot.yticks(
             scipy.arange(
@@ -99,6 +102,7 @@ for n in range(num_windows):
             prefix_ + "_timedomain",
             args.ext)
         plot.close()
+        del image
 
     if args.spectrum1:
         print("\tFrequency spectrum.")
@@ -114,10 +118,10 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
-        plot.ylim(-60, +60)
-        plot.clim(-80, 0)
+        plot.ylim(-100, +50)
+        plot.clim(-60, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
-        # plot.yticks(scipy.arange(-60, +80, 20))
+        plot.yticks(scipy.arange(-100, +51, 25))
         plot.xlabel("$z$")
         plot.ylabel("$\omega$")
         plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
@@ -126,6 +130,7 @@ for n in range(num_windows):
             prefix_ + "_spectrum1",
             args.ext)
         plot.close()
+        del image
 
     if args.spectrum2:
         print("\tFrequency and wavenumber spectrum.")
@@ -142,10 +147,10 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
-        plot.ylim(-60, +60)
-        plot.clim(-80, 0)
+        plot.ylim(-100, +50)
+        plot.clim(-60, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
-        plot.yticks(scipy.arange(-60, +80, 20))
+        plot.yticks(scipy.arange(-100, +51, 25))
         plot.xlabel("$k_z$")
         plot.ylabel("$\omega$")
         plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
@@ -154,6 +159,7 @@ for n in range(num_windows):
             prefix_ + "_spectrum2",
             args.ext)
         plot.close()
+        del image
 
     if args.one:
         exit()

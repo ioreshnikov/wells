@@ -76,7 +76,7 @@ if args.input is not None:
 filename = (
     filename +
     "delta=%.2f_pump=%.2E_loss=%.2E_tmin=%.2f_tmax_%.2f_nt=%d.npz" %
-    (args.delta, args.pump, args.loss, args.tmin, args.tmax, args.nt))
+    (delta, pump, loss, args.tmin, args.tmax, args.nt))
 
 
 absorber = (1000 *
@@ -100,9 +100,9 @@ workspace["states"] = states
 workspace["spectra"] = spectra
 workspace["input"] = input
 workspace["background"] = background
-workspace["delta"] = args.delta
-workspace["pump"] = args.pump
-workspace["loss"] = args.loss
+workspace["delta"] = delta
+workspace["pump"] = pump
+workspace["loss"] = loss
 workspace["absorber"] = absorber
 
 

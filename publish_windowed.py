@@ -43,7 +43,7 @@ states = workspace["states"]
 background = workspace["background"]
 
 
-winsize = args.win / t.max() * len(t)
+winsize = args.win / (t.max() - t.min()) * len(t)
 winsize = int(winsize)
 num_windows = len(t) / winsize
 num_windows = int(num_windows)
@@ -82,9 +82,10 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         # plot.xlim(-20, +20)
+        plot.xlim(x.min(), x.max())
         plot.ylim(t_.min(), t_.max())
         plot.clim(-60, 0)
-        plot.xticks(scipy.arange(-20, +21, 10))
+        # plot.xticks(scipy.arange(-20, +21, 10))
         plot.yticks(
             scipy.arange(
                 round(t_.min()),

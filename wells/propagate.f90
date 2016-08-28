@@ -9,7 +9,7 @@ module fftw
 
   ! Multi-threading.
   integer, private   :: threading_init_successfull
-  integer, parameter :: nthreads = 8
+  integer, parameter :: nthreads = 1
 
   ! Pointers to FFTW plan structures.
   integer*8, private :: forward_plan = 0
@@ -194,6 +194,7 @@ module pnlse
   double precision, pointer,               private :: pump_
   double precision, pointer,               private :: loss_
   double precision, pointer, dimension(:), private :: absorber_
+  double precision, pointer,               private :: background_
 
   ! These are the often used intermediate variables (like current
   ! spectrum or nonlinearity operator) that I'd like to reuse rather
@@ -205,16 +206,20 @@ module pnlse
   double complex, allocatable, dimension(:), private :: nonlinearity
   double complex, allocatable, dimension(:), private :: exp_
 contains
-  subroutine integrate(z, t, input, potential, delta, pump, loss, absorber, f, states, spectra)
+  subroutine integrate(z, t, input,                  &
+                       potential, delta, pump, loss, &
+                       absorber, background,         &
+                       f, states, spectra)
     ! Input variables.
     double precision, dimension(:), intent(in) :: z
     double precision, dimension(:), intent(in) :: t
     double complex,   dimension(:), target, intent(in) :: input
     double precision, dimension(:), target, intent(in) :: potential
-    double precision, intent(in), target :: delta
-    double precision, intent(in), target :: pump
-    double precision, intent(in), target :: loss
+    double precision, target, intent(in) :: delta
+    double precision, target, intent(in) :: pump
+    double precision, target, intent(in) :: loss
     double precision, dimension(:), target, intent(in) :: absorber
+    double precision, target, intent(in) :: background
     ! double precision, dimension(:), intent(in) :: betas
 
     ! Output variables.
@@ -241,11 +246,12 @@ contains
     integer,          allocatable, dimension(:) :: worker_integer
 
     ! Save medium parameters as module-level globals.
-    input_     => input
-    potential_ => potential
-    pump_      => pump
-    loss_      => loss
-    absorber_  => absorber
+    input_      => input
+    potential_  => potential
+    pump_       => pump
+    loss_       => loss
+    absorber_   => absorber
+    background_ => background
 
     ! Extract grid parameters from the vectors.
     nz = size(z)
@@ -396,7 +402,7 @@ contains
     if (size(absorber_) == nt) then
        nonlinearity =     &
            nonlinearity + &
-           im * absorber_ * (abs(state) - abs(input_))
+           im * absorber_ * (abs(state) - background_)
     end if
     nonlinearity = nonlinearity * state
     nonlinearity = nonlinearity + pump_

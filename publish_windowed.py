@@ -5,8 +5,6 @@ import argparse
 import matplotlib.pyplot as plot
 import scipy
 import scipy.fftpack as fft
-import scipy.integrate as integrate
-import wells.time_independent as time_independent
 import wells.publisher as publisher
 
 
@@ -18,6 +16,18 @@ parser.add_argument("--win",
                     help="window size",
                     type=float,
                     default=50.0)
+parser.add_argument("--one",
+                    help="plot only first window",
+                    action="store_true")
+parser.add_argument("--timedomain",
+                    help="plot time domain",
+                    action="store_true")
+parser.add_argument("--spectrum1",
+                    help="plot frequency spectrum",
+                    action="store_true")
+parser.add_argument("--spectrum2",
+                    help="plot frequency-wavenumber spectrum",
+                    action="store_true")
 parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
@@ -29,9 +39,8 @@ workspace = scipy.load(args.input)
 t = workspace["t"]
 x = workspace["x"]
 k = workspace["k"]
-input = workspace["input"]
 states = workspace["states"]
-absorber = workspace["absorber"]
+background = workspace["background"]
 
 
 winsize = args.win / t.max() * len(t)
@@ -47,117 +56,103 @@ publisher.init({"figure.figsize": (2.8, 2.4)})
 prefix = args.input.replace(".npz", "")
 
 for n in range(num_windows):
-    print("Window: %d/%d" % (n+1, num_windows))
+    print("Window: %d/%d" % (n + 1, num_windows))
+    prefix_ = prefix
+    if not args.one:
+        prefix_ = prefix_ + "_" + str(n)
 
     start = n * winsize
     stop = start + winsize
     window = slice(start, stop)
 
-    print("\tTime domain.")
     t_ = t[window]
     states_ = states[window, :]
-    image = abs(states_)
-    # image = abs(states_ - input)
-    image = image / image.max()
-    image = 20 * scipy.log10(image)
-
-    plot.figure()
-    axs = plot.subplot(1, 1, 1)
-    plot.pcolormesh(
-        x, t_, image,
-        cmap="magma",
-        rasterized=True)
-    plot.xlim(-20, +20)
-    # plot.xlim(x.min(), x.max())
-    plot.ylim(t_.min(), t_.max())
-    plot.clim(-80, 0)
-    # plot.xticks(scipy.arange(-20, +30, 10))
-    plot.yticks(
-        scipy.arange(
-            round(t_.min()),
-            round(t_.max()) + 1,
-            10))
-    plot.xlabel("$z$")
-    plot.ylabel("$t$")
-    plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
-    axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n+1) + "_timedomain", args.ext)
-    plot.close()
-
-    print("\tAbsorption strength.")
-    t_ = t[window]
-    states_ = states[window, :]
-    image = scipy.zeros(states_.shape)
-    for i in range(0, winsize):
-        image[i, :] = absorber * (abs(states_[i, :]) - abs(input))
-    image = abs(image)
-
-    plot.figure()
-    axs = plot.subplot(1, 1, 1)
-    plot.pcolormesh(
-        x, t_, image,
-        cmap="magma",
-        rasterized=True)
-    plot.xlim(x.min(), x.max())
-    plot.ylim(t_.min(), t_.max())
-    plot.yticks(
-        scipy.arange(
-            round(t_.min()),
-            round(t_.max()) + 1,
-            10))
-    plot.xlabel("$z$")
-    plot.ylabel("$t$")
-    plot.colorbar()
-    axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n+1) + "_absorption", args.ext)
-    plot.close()
-
-    print("\tFrequency spectrum.")
     spectra_ = fft.fft(states_, axis=0)
-    image = fft.fftshift(spectra_, axes=(0,))
-    image = abs(image)
-    image = image / image.max()
-    image = 20 * scipy.log10(image)
 
-    plot.figure()
-    axs = plot.subplot(1, 1, 1)
-    plot.pcolormesh(
-        x, f, image,
-        cmap="magma",
-        rasterized=True)
-    plot.xlim(-20, +20)
-    plot.ylim(-60, +60)
-    plot.clim(-80, 0)
-    plot.xticks(scipy.arange(-20, +30, 10))
-    plot.yticks(scipy.arange(-60, +80, 20))
-    plot.xlabel("$z$")
-    plot.ylabel("$\omega$")
-    plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
-    axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n+1) + "_spectrum1", args.ext)
-    plot.close()
+    if args.timedomain:
+        print("\tTime domain.")
+        image = abs(states_) - background
+        image = image / image.max()
+        image = 20 * scipy.log10(image)
 
-    print("\tFrequency and wavenumber spectrum.")
-    spectra_ = fft.ifft(spectra_, axis=1)
-    image = fft.fftshift(spectra_)
-    image = abs(image)
-    image = image / image.max()
-    image = 20 * scipy.log10(image)
+        figure = plot.figure()
+        axs = plot.subplot(1, 1, 1)
+        plot.pcolormesh(
+            x, t_, image,
+            cmap="magma",
+            rasterized=True)
+        # plot.xlim(-20, +20)
+        plot.ylim(t_.min(), t_.max())
+        plot.clim(-60, 0)
+        plot.xticks(scipy.arange(-20, +21, 10))
+        plot.yticks(
+            scipy.arange(
+                round(t_.min()),
+                round(t_.max()) + 1,
+                10))
+        plot.xlabel("$z$")
+        plot.ylabel("$t$")
+        plot.colorbar().set_ticks(scipy.arange(-60, 1, 20))
+        axs.tick_params(direction="out")
+        publisher.publish(
+            prefix_ + "_timedomain",
+            args.ext)
+        plot.close()
 
-    plot.figure()
-    axs = plot.subplot(1, 1, 1)
-    plot.pcolormesh(
-        k, f, image,
-        cmap="magma",
-        rasterized=True)
-    # plot.xlim(-20, +20)
-    plot.ylim(-60, +60)
-    plot.clim(-80, 0)
-    plot.xticks(scipy.arange(-20, +30, 10))
-    plot.yticks(scipy.arange(-60, +80, 20))
-    plot.xlabel("$k_z$")
-    plot.ylabel("$\omega$")
-    plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
-    axs.tick_params(direction="out")
-    publisher.publish(prefix + "_" + str(n+1) + "_spectrum2", args.ext)
-    plot.close()
+    if args.spectrum1:
+        print("\tFrequency spectrum.")
+        image = fft.fftshift(spectra_, axes=(0,))
+        image = abs(image)
+        image = image / image.max()
+        image = 20 * scipy.log10(image)
+
+        plot.figure()
+        axs = plot.subplot(1, 1, 1)
+        plot.pcolormesh(
+            x, f, image,
+            cmap="magma",
+            rasterized=True)
+        plot.xlim(-20, +20)
+        plot.ylim(-60, +60)
+        plot.clim(-60, 0)
+        plot.xticks(scipy.arange(-20, +30, 10))
+        # plot.yticks(scipy.arange(-60, +80, 20))
+        plot.xlabel("$z$")
+        plot.ylabel("$\omega$")
+        plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
+        axs.tick_params(direction="out")
+        publisher.publish(
+            prefix_ + "_spectrum1",
+            args.ext)
+        plot.close()
+
+    if args.spectrum2:
+        print("\tFrequency and wavenumber spectrum.")
+        spectra_ = fft.ifft(spectra_, axis=1)
+        image = fft.fftshift(spectra_)
+        image = abs(image)
+        image = image / image.max()
+        image = 20 * scipy.log10(image)
+
+        plot.figure()
+        axs = plot.subplot(1, 1, 1)
+        plot.pcolormesh(
+            k, f, image,
+            cmap="magma",
+            rasterized=True)
+        plot.xlim(-20, +20)
+        plot.ylim(-60, +60)
+        plot.clim(-60, 0)
+        plot.xticks(scipy.arange(-20, +30, 10))
+        plot.yticks(scipy.arange(-60, +80, 20))
+        plot.xlabel("$k_z$")
+        plot.ylabel("$\omega$")
+        plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
+        axs.tick_params(direction="out")
+        publisher.publish(
+            prefix_ + "_spectrum2",
+            args.ext)
+        plot.close()
+
+    if args.one:
+        exit()

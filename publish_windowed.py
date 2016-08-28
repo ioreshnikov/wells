@@ -81,10 +81,10 @@ for n in range(num_windows):
             x, t_, image,
             cmap="magma",
             rasterized=True)
-        # plot.xlim(-20, +20)
-        plot.xlim(x.min(), x.max())
+        plot.xlim(-20, +20)
+        # plot.xlim(x.min(), x.max())
         plot.ylim(t_.min(), t_.max())
-        plot.clim(-60, 0)
+        plot.clim(-80, 0)
         # plot.xticks(scipy.arange(-20, +21, 10))
         plot.yticks(
             scipy.arange(
@@ -93,7 +93,7 @@ for n in range(num_windows):
                 10))
         plot.xlabel("$z$")
         plot.ylabel("$t$")
-        plot.colorbar().set_ticks(scipy.arange(-60, 1, 20))
+        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_timedomain",
@@ -115,12 +115,12 @@ for n in range(num_windows):
             rasterized=True)
         plot.xlim(-20, +20)
         plot.ylim(-60, +60)
-        plot.clim(-60, 0)
+        plot.clim(-80, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
         # plot.yticks(scipy.arange(-60, +80, 20))
         plot.xlabel("$z$")
         plot.ylabel("$\omega$")
-        plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
+        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_spectrum1",
@@ -143,12 +143,12 @@ for n in range(num_windows):
             rasterized=True)
         plot.xlim(-20, +20)
         plot.ylim(-60, +60)
-        plot.clim(-60, 0)
+        plot.clim(-80, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
         plot.yticks(scipy.arange(-60, +80, 20))
         plot.xlabel("$k_z$")
         plot.ylabel("$\omega$")
-        plot.colorbar().set_ticks(scipy.arange(-60, 10, 10))
+        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_spectrum2",

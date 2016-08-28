@@ -3,6 +3,7 @@
 
 import argparse
 import scipy as s
+import wells.propagate as propagate
 import wells.time_dependent as time_dependent
 
 
@@ -14,20 +15,24 @@ parser.add_argument("--delta",
                     help="Detuning between the pump and the resonance",
                     type=float,
                     default=0.0)
+parser.add_argument("--pump",
+                    help="Pump",
+                    type=float,
+                    default=0.0)
 parser.add_argument("--loss",
                     help="Linear losses",
                     type=float,
                     default=0.0)
-parser.add_argument("--pump",
-                    help="Pump",
+parser.add_argument("--absorber",
+                    help="Strength of the absorbing layer",
                     type=float,
                     default=0.0)
 args = parser.parse_args()
 
 
-tmin = 000.0
-tmax = 400.0
-nt = 2**11
+tmin = 00.0
+tmax = 50.0
+nt = 2**10
 t = s.linspace(0, tmax - tmin, nt)
 
 xmin = -128.00
@@ -49,8 +54,6 @@ if args.input is not None:
     workspace = s.load(args.input)
     if "solution" in workspace.files:
         # Using stationary solution as an initial condition.
-        # half = int(nx/2) - 1
-        # input[half - 512:half + 512] = workspace["solution"]
         input = workspace["solution"][::2]
     if "states" in workspace.files:
         # Using own data file to extract the input state.
@@ -60,20 +63,21 @@ if args.input is not None:
     loss = workspace["loss"]
 
 
-absamp = 500
-absorber = absamp * (1/s.cosh((x - x.min()) / 4.0) +
-                     1/s.cosh((x - x.max()) / 4.0))
+absorber = (args.absorber *
+            (1/s.cosh((x - x.min()) / 8.0) +
+             1/s.cosh((x - x.max()) / 8.0)))
 absorber[abs(x) < 32] = 0
 
+
 # import matplotlib.pyplot as plot
-# plot.semilogy(x, abs(absorber))
+# plot.plot(x, abs(absorber))
 # plot.show()
 # exit()
 
 
-t, x, k, states, spectra = time_dependent.integrate(
+k, states, spectra = propagate.pnlse.integrate(
     t, x, input, potential,
-    delta, loss, pump,
+    delta, pump, loss,
     absorber)
 
 
@@ -81,7 +85,7 @@ if args.input is not None:
     filename = args.input.replace(".npz", "")
     filename = (filename +
                 "_absorber=%.2f_tmin=%.2f_tmax=%.2f.npz"
-                % (absamp, tmin, tmax))
+                % (args.absorber, tmin, tmax))
 else:
     filename = ("delta=%.2f_pump=%.2E_loss=%.2E.npz" %
                 (args.delta, args.pump, args.loss))
@@ -95,8 +99,8 @@ workspace["states"] = states
 workspace["spectra"] = spectra
 workspace["input"] = input
 workspace["delta"] = args.delta
-workspace["loss"] = args.loss
 workspace["pump"] = args.pump
+workspace["loss"] = args.loss
 workspace["absorber"] = absorber
 
 

@@ -4,7 +4,7 @@ import scipy.integrate
 import sys
 
 
-def integrate(t, x, input, potential, delta, loss, pump, absorber):
+def integrate(t, x, input, potential, delta, pump, loss, absorber):
     nt = len(t)
     nx = len(x)
 
@@ -20,11 +20,16 @@ def integrate(t, x, input, potential, delta, loss, pump, absorber):
         exp_ = s.exp(1j * d * t)
         spectrum = exp_ * spectrum_
         state = fft.ifft(spectrum)
+        # nonlinearity = abs(state)**2
+        # nonlinearity += - potential
+        # nonlinearity += 1j * loss
+        # nonlinearity += 1j * absorber * (abs(state) - abs(input))
+        # nonlinearity *= state
         nonlinearity = abs(state)**2 * state
         nonlinearity += - potential * state
         nonlinearity += 1j * loss * state
-        nonlinearity += pump
         nonlinearity += 1j * absorber * (abs(state) - abs(input)) * state
+        nonlinearity += pump
 
         return 1j * 1/exp_ * fft.fft(nonlinearity)
 
@@ -41,7 +46,7 @@ def integrate(t, x, input, potential, delta, loss, pump, absorber):
     spectra = s.zeros((nt, nx), dtype=complex)
     states = s.zeros((nt, nx), dtype=complex)
     for i in range(1, nt):
-        sys.stderr.write("\rIntegrating: %-3.2f%%" % (100 * i/nt))
+        sys.stderr.write("\rIntegrating: %-3.3f%%" % (100 * i/nt))
         spectra_[i, :] = solver.integrate(t[i])
     sys.stderr.write("\r")
 
@@ -51,4 +56,4 @@ def integrate(t, x, input, potential, delta, loss, pump, absorber):
         spectra[i, :] = 1/nt * fft.fftshift(spectra[i, :])
     k = fft.fftshift(k)
 
-    return t, x, k, states, spectra
+    return k, states, spectra

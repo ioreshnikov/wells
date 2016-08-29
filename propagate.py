@@ -79,7 +79,7 @@ filename = (
     (delta, pump, loss, args.mint, args.maxt, args.nt))
 
 
-absorber = (0000 *
+absorber = (1000 *
             (1/s.cosh((x - x.min()) / 8.0) +
              1/s.cosh((x - x.max()) / 8.0)))
 absorber[abs(x) < 64] = 0

@@ -68,9 +68,9 @@ for n in range(num_windows):
     t_ = t[window]
     states_ = states[window, :]
 
-    t_ = t_[::2]
-    f = f[::2]
-    states_ = states_[::2, :]
+    t_ = t_[::4]
+    f = f[::4]
+    states_ = states_[::4, :]
     spectra_ = fft.fft(states_, axis=0)
 
     if args.timedomain:

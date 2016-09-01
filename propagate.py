@@ -33,13 +33,13 @@ parser.add_argument("--maxt",
 parser.add_argument("--nt",
                     help="Number of time steps in the output",
                     type=float,
-                    default=2**12)
+                    default=2**10)
 args = parser.parse_args()
 
 
 xmin = -128.00
 xmax = +128.00
-nx = 2**12
+nx = 2**15
 x = s.linspace(xmin, xmax, nx)
 
 

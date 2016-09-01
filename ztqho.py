@@ -4,6 +4,7 @@
 import argparse
 
 import scipy
+import scipy.interpolate as interpolate
 import scipy.sparse as sparse
 import scipy.optimize as optimize
 
@@ -24,13 +25,14 @@ parser.add_argument("--pump",
                     help="Pump",
                     type=float,
                     default=0.0)
-parser.add_argument("--input",
-                    help="Read initial condition from a file",
-                    type=str)
 parser.add_argument("--n",
                     help="Mode number",
                     type=int,
                     default=0)
+parser.add_argument("--label",
+                    help="Auxiliary label",
+                    type=str,
+                    default="0")
 parser.add_argument("--scale",
                     help="Initial guess scaling",
                     type=float,
@@ -39,17 +41,19 @@ parser.add_argument("--phase",
                     help="Initial guess phase rotation",
                     type=float,
                     default=0.0)
-parser.add_argument("--label",
-                    help="Auxiliary label",
-                    type=str,
-                    default="0")
+parser.add_argument("--input",
+                    help="Read initial condition from a file",
+                    type=str)
+parser.add_argument("--oversample",
+                    help="Interpolate and oversample initial guess",
+                    action="store_true")
 args = parser.parse_args()
 
 
 # Coordinate grid parameters.
 minx = -128
 maxx = +128
-nx = 2**12
+nx = 2**15
 dx = (minx - maxx) / (nx - 1)
 
 # Coordinate grid.
@@ -60,30 +64,6 @@ x = scipy.linspace(minx, maxx, nx)
 u = scipy.zeros(x.shape)
 u = 1/2 * x**2
 u[abs(x) >= 10] = 50
-
-
-# Load input file to use for initial guess.
-if args.input is not None:
-    workspace = scipy.load(args.input)
-    solution = workspace["solution"]
-
-
-# Find the first n eigenstates to use as starting point.
-eigenvalues, eigenvectors = time_independent.fdlp(
-    x, u, args.n + 1, boundary="box")
-eigenvectors = eigenvectors.real
-
-
-# Normalize the modes.
-for n in range(args.n + 1):
-    eigenvalue = eigenvalues[n]
-    eigenvector = eigenvectors[:, n]
-    eigenvector = (
-        scipy.sqrt(
-            abs(eigenvalue) /
-            util.energy(x, eigenvector)) *
-        eigenvector)
-    eigenvectors[:, n] = eigenvector
 
 
 # Define operators for the Newton-CG method.
@@ -115,21 +95,22 @@ def l0(state):
         loss)
     return operator.dot(state) - pump
 
-
-# Preconditioning operator
-eigenvalue = eigenvalues[args.n]
-eigenvector = eigenvectors[:, args.n]
 initial = scipy.zeros(2*nx)
-if args.input is not None:
-    solution = scipy.exp(1j * args.phase) * args.scale * solution
-    # real = scipy.zeros(nx)
-    # imag = scipy.zeros(nx)
-    # real[int(nx/2-nx/4):int(nx/2+nx/4)] = solution.real
-    # imag[int(nx/2-nx/4):int(nx/2+nx/4)] = solution.imag
-    # initial[:nx] = real
-    # initial[nx:] = imag
-    initial[:nx] = solution.real
-    initial[nx:] = solution.imag
+if args.input:
+    workspace = scipy.load(args.input)
+    solution = workspace["solution"]
+    if args.oversample:
+        x_ = workspace["x"]
+        real = solution.real
+        imag = solution.imag
+        real = interpolate.interp1d(x_, real)(x)
+        imag = interpolate.interp1d(x_, imag)(x)
+        initial[:nx] = real
+        initial[nx:] = imag
+    else:
+        solution = scipy.exp(1j * args.phase) * args.scale * solution
+        initial[:nx] = solution.real
+        initial[nx:] = solution.imag
 else:
     initial[:] = 0
 
@@ -144,8 +125,6 @@ workspace = {}
 workspace["x"] = x
 workspace["potential"] = u
 workspace["n"] = args.n
-workspace["eigenvalue"] = eigenvalue
-workspace["eigenvector"] = eigenvector
 workspace["delta"] = args.delta
 workspace["solution"] = solution[:nx] + 1j * solution[nx:]
 workspace["pump"] = args.pump

@@ -22,12 +22,23 @@ parser.add_argument("--one",
 parser.add_argument("--timedomain",
                     help="plot time domain",
                     action="store_true")
+parser.add_argument("--spectrum0",
+                    help="plot frequency spectrum at fixed z",
+                    action="store_true")
+parser.add_argument("--z",
+                    help="fixed z to plot the spectrum at",
+                    type=float,
+                    default=0.0)
 parser.add_argument("--spectrum1",
                     help="plot frequency spectrum",
                     action="store_true")
 parser.add_argument("--spectrum2",
                     help="plot frequency-wavenumber spectrum",
                     action="store_true")
+parser.add_argument("--subsample",
+                    help="use only every nth digit",
+                    type=int,
+                    default=1)
 parser.add_argument("--ext",
                     help="output file extension",
                     type=str,
@@ -67,15 +78,16 @@ for n in range(num_windows):
 
     t_ = t[window]
     states_ = states[window, :]
-
-    t_ = t_[::4]
-    f = f[::4]
-    states_ = states_[::4, :]
     spectra_ = fft.fft(states_, axis=0)
+
+    t_ = t_[::args.subsample]
+    f = f[::args.subsample]
+    states_ = states_[::args.subsample, :]
+    spectra_ = spectra_[::args.subsample, :]
 
     if args.timedomain:
         print("\tTime domain.")
-        image = abs(abs(states_) - abs(background))
+        image = abs(states_)
         image = image / image.max()
         image = 20 * scipy.log10(image)
 
@@ -86,20 +98,41 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
+        plot.xticks(scipy.arange(-20, +21, 10))
         plot.ylim(t_.min(), t_.max())
-        plot.clim(-60, 0)
-        # plot.xticks(scipy.arange(-20, +21, 10))
         plot.yticks(
             scipy.arange(
                 round(t_.min()),
                 round(t_.max()) + 1,
                 10))
+        plot.clim(-60, 0)
+        plot.colorbar().set_ticks(scipy.arange(-60, 1, 20))
         plot.xlabel("$z$")
         plot.ylabel("$t$")
-        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_timedomain",
+            args.ext)
+        plot.close()
+        del image
+
+    if args.spectrum0:
+        print("\tFrequency spectrum at z=%.2f" % args.z)
+        idx = abs(x - args.z).argmin()
+        spectrum = spectra_[:, idx]
+
+        image = fft.fftshift(spectrum)
+        image = abs(image)
+        image = image / image.max()
+
+        plot.figure()
+        axs = plot.subplot(1, 1, 1)
+        plot.plot(f, image)
+        plot.xlim(-60, 10)
+        plot.xlabel(r"$\omega$")
+        axs.tick_params(direction="out")
+        publisher.publish(
+            prefix_ + "_spectrum0",
             args.ext)
         plot.close()
         del image
@@ -118,13 +151,13 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
-        plot.ylim(-100, +50)
-        plot.clim(-60, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
+        plot.ylim(-100, +50)
         plot.yticks(scipy.arange(-100, +51, 25))
+        plot.clim(-80, 0)
+        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         plot.xlabel("$z$")
         plot.ylabel("$\omega$")
-        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_spectrum1",
@@ -147,13 +180,13 @@ for n in range(num_windows):
             cmap="magma",
             rasterized=True)
         plot.xlim(-20, +20)
-        plot.ylim(-100, +50)
-        plot.clim(-60, 0)
         plot.xticks(scipy.arange(-20, +30, 10))
+        plot.ylim(-100, +50)
         plot.yticks(scipy.arange(-100, +51, 25))
+        plot.clim(-80, 0)
+        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         plot.xlabel("$k_z$")
         plot.ylabel("$\omega$")
-        plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         axs.tick_params(direction="out")
         publisher.publish(
             prefix_ + "_spectrum2",

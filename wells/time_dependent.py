@@ -20,11 +20,6 @@ def integrate(t, x, input, potential, delta, pump, loss, absorber):
         exp_ = s.exp(1j * d * t)
         spectrum = exp_ * spectrum_
         state = fft.ifft(spectrum)
-        # nonlinearity = abs(state)**2
-        # nonlinearity += - potential
-        # nonlinearity += 1j * loss
-        # nonlinearity += 1j * absorber * (abs(state) - abs(input))
-        # nonlinearity *= state
         nonlinearity = abs(state)**2 * state
         nonlinearity += - potential * state
         nonlinearity += 1j * loss * state

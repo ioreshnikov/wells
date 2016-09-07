@@ -50,7 +50,6 @@ workspace = scipy.load(args.input)
 t = workspace["t"]
 x = workspace["x"]
 k = workspace["k"]
-states = workspace["states"]
 background = workspace["background"]
 
 
@@ -61,6 +60,13 @@ num_windows = int(num_windows)
 
 f = fft.fftfreq(winsize, t[1] - t[0])
 f = 2 * scipy.pi * fft.fftshift(f)
+
+
+# Hackity hack!
+xmin, xmax = -20, +20
+xwin = (x >= xmin ) &(x <= xmax)
+x = x[xwin]
+states = workspace["states"][:, xwin]
 
 
 publisher.init({"figure.figsize": (2.8, 2.4)})
@@ -80,14 +86,14 @@ for n in range(num_windows):
     states_ = states[window, :]
     spectra_ = fft.fft(states_, axis=0)
 
-    t_ = t_[::args.subsample]
-    f = f[::args.subsample]
-    states_ = states_[::args.subsample, :]
-    spectra_ = spectra_[::args.subsample, :]
+    # t_ = t_[::args.subsample]
+    # f = f[::args.subsample]
+    # states_ = states_[::args.subsample, :]
+    # spectra_ = spectra_[::args.subsample, :]
 
     if args.timedomain:
         print("\tTime domain.")
-        image = abs(states_)
+        image = abs(abs(states_) - background)
         image = image / image.max()
         image = 20 * scipy.log10(image)
 
@@ -152,8 +158,8 @@ for n in range(num_windows):
             rasterized=True)
         plot.xlim(-20, +20)
         plot.xticks(scipy.arange(-20, +30, 10))
-        plot.ylim(-100, +50)
-        plot.yticks(scipy.arange(-100, +51, 25))
+        plot.ylim(f.min(), f.max())
+        # plot.yticks(scipy.arange(-75, +26, 25))
         plot.clim(-80, 0)
         plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         plot.xlabel("$z$")
@@ -181,8 +187,8 @@ for n in range(num_windows):
             rasterized=True)
         plot.xlim(-20, +20)
         plot.xticks(scipy.arange(-20, +30, 10))
-        plot.ylim(-100, +50)
-        plot.yticks(scipy.arange(-100, +51, 25))
+        plot.ylim(-75, +25)
+        plot.yticks(scipy.arange(-75, +26, 25))
         plot.clim(-80, 0)
         plot.colorbar().set_ticks(scipy.arange(-80, 1, 20))
         plot.xlabel("$k_z$")

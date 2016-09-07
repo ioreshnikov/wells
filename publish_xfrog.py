@@ -57,18 +57,11 @@ image = 20 * s.log10(image)
 
 publisher.init({"figure.figsize": (2.8, 2.4)})
 prefix = args.input.replace(".npz", "")
-
-
-plot.figure()
-plot.plot(x, abs(state) / abs(state).max())
-plot.xlim(-20, +20)
-plot.xticks(s.arange(-20, +21, 10))
-plot.xlabel(r"$z$")
-plot.ylabel(r"$\left|A(t, z)\right|$")
-publisher.publish(prefix + "_state=%.2f" % args.t, args.ext)
-plot.close()
+filename = prefix + "_xfrog=%.2f" % args.t
 
 plot.figure()
+axs = plot.subplot(1, 1, 1)
+plot.title(r"$t=%.2f$" % args.t, y=1.05)
 plot.pcolormesh(
     delay, k, image,
     cmap="magma",
@@ -77,9 +70,13 @@ plot.xlim(-20, +20)
 plot.xticks(s.arange(-40, +41, 20))
 plot.ylim(-40, +40)
 plot.yticks(s.arange(-40, +41, 20))
-plot.clim(-60, 0)
-plot.colorbar().set_ticks(s.arange(-60, 1, 20))
+plot.clim(-80, 0)
+plot.colorbar().set_ticks(s.arange(-80, 1, 20))
 plot.xlabel(r"$z$")
 plot.ylabel(r"$k_z$")
-publisher.publish(prefix + "_xfrog=%.2f" % args.t, args.ext)
+axs.tick_params(direction="out")
+
+publisher.publish(filename, args.ext)
 plot.close()
+
+print(filename + "." + args.ext)

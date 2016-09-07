@@ -20,6 +20,7 @@ pgf_parameters = {
     "font.sans-serif": [],
     "font.monospace": [],
     "axes.labelsize": 10,
+    "axes.titlesize": 10,
     "legend.fontsize": 8,
     "xtick.labelsize": 8,
     "ytick.labelsize": 8,

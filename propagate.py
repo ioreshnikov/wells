@@ -3,7 +3,7 @@
 
 import argparse
 import scipy as s
-import wells.propagate as propagate
+from wells._solver import ccgnlse
 
 
 parser = argparse.ArgumentParser()
@@ -34,6 +34,10 @@ parser.add_argument("--nt",
                     help="Number of time steps in the output",
                     type=float,
                     default=2**12)
+parser.add_argument("--dt",
+                    help="Internal solver time step",
+                    type=float,
+                    default=1E-4)
 args = parser.parse_args()
 
 
@@ -75,8 +79,8 @@ if args.input is not None:
 
 filename = (
     filename +
-    "delta=%.2f_pump=%.2E_loss=%.2E_mint=%.2f_maxt_%.2f_nt=%d.npz" %
-    (delta, pump, loss, args.mint, args.maxt, args.nt))
+    "delta=%.2f_pump=%.2E_loss=%.2E_mint=%.2f_maxt_%.2f_nt=%d_dt=%.2E.npz" %
+    (delta, pump, loss, args.mint, args.maxt, args.nt, args.dt))
 
 
 absorber = (1000 *
@@ -86,18 +90,19 @@ absorber[abs(x) < 64] = 0
 
 
 t = s.linspace(args.mint, args.maxt, args.nt)
-k, states, spectra = propagate.pnlse.integrate(
-    t - t.min(), x, input, potential,
-    delta, pump, loss,
+states = ccgnlse.integrate(
+    t, x, input, args.dt,
+    [-delta, 0.0, -1.0],
+    1.0,
+    potential,
+    pump, loss,
     absorber, background)
 
 
 workspace = {}
 workspace["t"] = t
 workspace["x"] = x
-workspace["k"] = k
 workspace["states"] = states
-workspace["spectra"] = spectra
 workspace["input"] = input
 workspace["background"] = background
 workspace["delta"] = delta

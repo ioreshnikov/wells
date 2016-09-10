@@ -1,10 +1,9 @@
 #!/bin/bash
 
+set -e;
 
-gfortran -g -c -fPIC vode.f zvode.f;
-f2py -I/usr/include                  \
-     -lfftw3_threads -llapack -lblas \
-     --arch='-march=native'          \
-     vode.o zvode.o                  \
-     -c propagate.f90 -m propagate;
-rm *.o;
+f2py --fcompiler=gnu95         \
+     -I/usr/include            \
+     -lfftw3                   \
+     --arch='-march=native'    \
+     -c _solver.f90 -m _solver;

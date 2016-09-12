@@ -20,17 +20,17 @@ parser.add_argument("-s", "--figsize",
                     help="Figure size",
                     type=tuple,
                     default=("2.8", "2.4"))
-parser.add_argument("--minx", "--xmin",
+parser.add_argument("--minz", "--zmin", "--minx", "--xmin",
                     help="Minimum x coordinate",
                     type=float)
-parser.add_argument("--maxx", "--xmax",
+parser.add_argument("--maxz", "--zmax", "--maxx", "--xmax",
                     help="Maximum x coordinate",
                     type=float)
-parser.add_argument("--mint", "--tmin",
-                    help="Minimum t coordinate",
+parser.add_argument("--mint", "--tmin", "--miny", "--ymin",
+                    help="Minimum y coordinate",
                     type=float)
-parser.add_argument("--maxt", "--tmax",
-                    help="Maximum t coordinate",
+parser.add_argument("--maxt", "--tmax", "--maxy", "--ymax",
+                    help="Maximum y coordinate",
                     type=float)
 parser.add_argument("--dbmin", "--mindb",
                     help="Minimum decibels level to display",
@@ -42,6 +42,9 @@ parser.add_argument("--ssx",
 parser.add_argument("--ssy",
                     help="Subsample in y",
                     type=int)
+parser.add_argument("-p", "--physical-units",
+                    help="Use physical units for plot labels",
+                    action="store_true")
 parser.add_argument("input",
                     help="Input file",
                     type=str)
@@ -53,10 +56,11 @@ t = workspace["t"]
 x = workspace["x"]
 ys = workspace["states"]
 bg = workspace["background"]
+delta = workspace["delta"]
 
 
-minx = args.minx if args.minx is not None else x.min()
-maxx = args.maxx if args.maxx is not None else x.max()
+minx = args.minz if args.minz is not None else x.min()
+maxx = args.maxz if args.maxz is not None else x.max()
 mint = args.mint if args.mint is not None else t.min()
 maxt = args.maxt if args.maxt is not None else t.max()
 minc = args.dbmin
@@ -75,13 +79,41 @@ if args.ssy:
     ys = ys[::args.ssy, :]
 
 
-ys = abs(abs(ys) - bg)
+ys = abs(ys)
 ys = ys / ys.max()
 ys = 20 * scipy.log10(ys)
 
 xticks = scipy.linspace(minx, maxx, 5)
-tticks = scipy.arange(mint, maxt + 1, 10)
-cticks = scipy.arange(minc, maxc + 1, 20)
+yticks = scipy.linspace(mint, maxt, 6)
+cticks = scipy.linspace(minc, maxc, 5)
+
+
+def texify(ticks, digits=0):
+    labels = []
+    template = "$%d$"
+    if digits:
+        template = "$%%.%df$" % digits
+    for t in ticks:
+        labels.append(template % t)
+    return labels
+
+xlabel = "$z$"
+ylabel = "$t$"
+xlabels = texify(xticks)
+ylabels = texify(yticks)
+clabels = texify(cticks)
+
+if args.physical_units:
+    # This is very ad-hoc.
+    delta0 = 1E11  # Hardcoded, but what?
+    beta0 = 250    # ... and this too.
+    unit = scipy.sqrt(beta0/delta0)
+
+    xlabel = r"$z,~\mathrm{mm}$"
+    ylabel = r"$t,~\mathrm{ns}$"
+
+    xlabels = texify(unit*xticks/1E-3, digits=1)
+    ylabels = texify(yticks/delta0/1E-9, digits=1)
 
 
 if not args.interactive:
@@ -96,11 +128,12 @@ cb = plot.colorbar()
 plot.xlim(minx, maxx)
 plot.ylim(mint, maxt)
 plot.clim(minc, maxc)
-plot.xticks(xticks)
-plot.yticks(tticks)
+plot.xticks(xticks, xlabels)
+plot.yticks(yticks, ylabels)
 cb.set_ticks(cticks)
-plot.xlabel("$x$")
-plot.ylabel("$t$")
+cb.set_ticklabels(clabels)
+plot.xlabel(xlabel)
+plot.ylabel(ylabel)
 plot.axes().tick_params(direction="out")
 
 if args.interactive:

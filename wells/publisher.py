@@ -5,6 +5,7 @@ import matplotlib.pyplot as plot
 __backend = None
 __parameters = None
 
+
 pgf_parameters = {
     "pgf.texsystem": "pdflatex",
     "text.usetex": True,

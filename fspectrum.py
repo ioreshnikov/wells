@@ -76,8 +76,8 @@ if args.ssx:
 
 f = 2*scipy.pi * fft.fftfreq(len(t), t[1] - t[0])
 f = fft.fftshift(f)
-minf = args.minf if args.minf is not None else f.min()
-maxf = args.maxf if args.maxf is not None else f.max()
+miny = args.minf if args.minf is not None else f.min()
+maxy = args.maxf if args.maxf is not None else f.max()
 
 ys = fft.fft(ys, axis=0)
 ys = fft.fftshift(ys, axes=[0])
@@ -91,7 +91,7 @@ if args.ssy:
     ys = ys[::args.ssy, :]
 
 xticks = scipy.linspace(minx, maxx, 5)
-yticks = scipy.linspace(minf, maxf, 5)
+yticks = scipy.linspace(miny, maxy, 5)
 cticks = scipy.linspace(minc, maxc, 5)
 
 
@@ -101,11 +101,11 @@ def texify(ticks, digits=0):
     if digits:
         template = "$%%.%df$" % digits
     for t in ticks:
-        labels.append(template % t)
+        labels.append(template % round(t, digits))
     return labels
 
 xlabel = "$z$"
-ylabel = "$t$"
+ylabel = "$\omega$"
 xlabels = texify(xticks)
 ylabels = texify(yticks)
 clabels = texify(cticks)
@@ -117,12 +117,22 @@ if args.physical_units:
     beta0 = 250    # ... and this too.
     unit = scipy.sqrt(beta0/delta0)
 
+    def towl(f):
+        c = 3E8
+        l0 = 1.55 * 1E-6
+        f0 = c/l0
+        return c/(f0 + delta0*f)
+
+    f = towl(f)
+    maxy = towl(miny)
+    miny = towl(maxy)
+    yticks = towl(yticks)
+
     xlabel = r"$z,~\mathrm{mm}$"
-    ylabel = r"$t,~\mathrm{ns}$"
+    ylabel = r"$\lambda,~\mathrm{nm}$"
 
     xlabels = texify(unit*xticks/1E-3, digits=1)
-    print(yticks * delta0)
-    exit()
+    ylabels = texify(yticks/1E-9)
 
 
 if not args.interactive:
@@ -135,13 +145,13 @@ plot.figure()
 plot.pcolormesh(x, f, ys, cmap="magma", rasterized=True)
 cb = plot.colorbar()
 plot.xlim(minx, maxx)
-plot.ylim(minf, maxf)
+plot.ylim(miny, maxy)
 plot.clim(minc, maxc)
-plot.xticks(xticks)
-plot.yticks(yticks)
+plot.xticks(xticks, xlabels)
+plot.yticks(yticks, ylabels)
 cb.set_ticks(cticks)
-plot.xlabel("$x$")
-plot.ylabel("$t$")
+plot.xlabel(xlabel)
+plot.ylabel(ylabel)
 plot.axes().tick_params(direction="out")
 
 if args.interactive:

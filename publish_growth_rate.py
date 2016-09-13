@@ -79,7 +79,7 @@ xmin = -4.0
 xmax = +4.0
 
 ymin = -0.1
-ymax = +0.7
+ymax = +0.9
 
 dx = 1.0
 dy = 0.1

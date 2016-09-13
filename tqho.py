@@ -29,7 +29,7 @@ args = parser.parse_args()
 # Coordinate grid parameters.
 minx = -128
 maxx = +128
-nx = 2**12
+nx = 2**11
 dx = (minx - maxx) / (nx - 1)
 
 # Coordinate grid.
@@ -37,9 +37,20 @@ x = scipy.linspace(minx, maxx, nx)
 
 
 # Potential.
+import matplotlib.pyplot as plot
+
 u = scipy.zeros(x.shape)
 u = 1/2 * x**2
 u[abs(x) >= 10] = 50
+
+step = 1 / (1 + scipy.exp(abs(x) - 10))
+step = step**2
+v = 1/2 * x**2 * step
+v = v + 50 * (1 - step)
+plot.figure()
+plot.plot(x, v)
+plot.show()
+exit()
 
 
 # Load input file to use for initial guess.

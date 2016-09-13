@@ -113,7 +113,7 @@ if args.physical_units:
     ylabel = r"$t,~\mathrm{ns}$"
 
     xlabels = texify(unit*xticks/1E-3, digits=1)
-    ylabels = texify(yticks/delta0/1E-9, digits=1)
+    ylabels = texify(2*scipy.pi*yticks/delta0/1E-9, digits=2)
 
 
 if not args.interactive:

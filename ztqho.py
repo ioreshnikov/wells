@@ -8,7 +8,6 @@ import scipy.interpolate as interpolate
 import scipy.sparse as sparse
 import scipy.optimize as optimize
 
-import wells.time_independent as time_independent
 import wells.util as util
 
 
@@ -61,9 +60,9 @@ x = scipy.linspace(minx, maxx, nx)
 
 
 # Potential.
-u = scipy.zeros(x.shape)
+l = 10.0
 u = 1/2 * x**2
-u[abs(x) >= 10] = 50
+u[abs(x) >= l] = 1/2 * l**2
 
 
 # Define operators for the Newton-CG method.

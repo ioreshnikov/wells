@@ -19,8 +19,23 @@ parser.add_argument("-e", "--ext",
                     default="png")
 parser.add_argument("-s", "--figsize",
                     help="Figure size",
-                    type=tuple,
-                    default=("2.8", "2.4"))
+                    type=str,
+                    default="2.8, 2.4")
+parser.add_argument("-c", "--colorbar",
+                    help="Show colorbar",
+                    action="store_true")
+parser.add_argument("--nx", "--xn",
+                    help="Number of x ticks",
+                    type=int,
+                    default=5)
+parser.add_argument("--ny", "--yn",
+                    help="Number of y ticks",
+                    type=int,
+                    default=6)
+parser.add_argument("--nc", "--cn",
+                    help="Number of colorbar ticks",
+                    type=int,
+                    default=4)
 parser.add_argument("--minz", "--zmin", "--minx", "--xmin",
                     help="Minimum x coordinate",
                     type=float)
@@ -58,11 +73,33 @@ x = workspace["x"]
 ys = workspace["states"]
 bg = workspace["background"]
 
+f = 2*scipy.pi * fft.fftfreq(len(t), t[1] - t[0])
+f = fft.fftshift(f)
 
-minx = args.minz if args.minz is not None else x.min()
-maxx = args.maxz if args.maxz is not None else x.max()
-minc = args.dbmin
+
+if args.physical_units:
+    delta0 = 1E11
+    beta0 = 250
+    xu = scipy.sqrt(beta0/delta0)
+    x = xu * x
+
+    c = 3E8
+    l0 = 1.55 * 1E-6
+    f0 = c/l0
+    f = c/(f0 + delta0*f)
+
+
+mm = 1.0
+nm = 1.0
+if args.physical_units:
+    mm = 1E-3
+    nm = 1E-9
+minx = args.minz*mm if args.minz is not None else x.min()
+maxx = args.maxz*mm if args.maxz is not None else x.max()
+miny = args.minf*nm if args.minf is not None else f.min()
+maxy = args.maxf*nm if args.maxf is not None else f.max()
 maxc = 0
+minc = args.dbmin
 
 
 window = (x > minx) & (x < maxx)
@@ -73,26 +110,25 @@ if args.ssx:
     x = x[::args.ssx]
     ys = ys[:, ::args.ssx]
 
-
-f = 2*scipy.pi * fft.fftfreq(len(t), t[1] - t[0])
-f = fft.fftshift(f)
-miny = args.minf if args.minf is not None else f.min()
-maxy = args.maxf if args.maxf is not None else f.max()
-
 ys = fft.fft(ys, axis=0)
 ys = fft.fftshift(ys, axes=[0])
-ys = abs(ys)
-ys = ys / ys.max()
-ys = 20 * scipy.log10(ys)
 
+window = (f > miny) & (f < maxy)
+f = f[window]
+ys = ys[window, :]
 
 if args.ssy:
     f = f[::args.ssy]
     ys = ys[::args.ssy, :]
 
-xticks = scipy.linspace(minx, maxx, 5)
-yticks = scipy.linspace(miny, maxy, 5)
-cticks = scipy.linspace(minc, maxc, 5)
+ys = abs(ys)
+ys = ys / ys.max()
+ys = 20 * scipy.log10(ys)
+
+
+xticks = scipy.linspace(minx, maxx, args.nx)
+yticks = scipy.linspace(miny, maxy, args.ny)
+cticks = scipy.linspace(minc, maxc, args.nc)
 
 
 def texify(ticks, digits=0):
@@ -104,55 +140,42 @@ def texify(ticks, digits=0):
         labels.append(template % round(t, digits))
     return labels
 
-xlabel = "$z$"
-ylabel = "$\omega$"
-xlabels = texify(xticks)
-ylabels = texify(yticks)
+
+if args.physical_units:
+    xlabel = "$z,~\mathrm{mm}$"
+    ylabel = "$\lambda,~\mathrm{nm}$"
+    xlabels = texify(xticks/mm, digits=1)
+    ylabels = texify(yticks/nm)
+else:
+    xlabel = "$z$"
+    ylabel = "$\omega$"
+    xlabels = texify(xticks)
+    ylabels = texify(yticks)
 clabels = texify(cticks)
 
 
-if args.physical_units:
-    # This is very ad-hoc.
-    delta0 = 1E11  # Hardcoded, but what?
-    beta0 = 250    # ... and this too.
-    unit = scipy.sqrt(beta0/delta0)
-
-    def towl(f):
-        c = 3E8
-        l0 = 1.55 * 1E-6
-        f0 = c/l0
-        return c/(f0 + delta0*f)
-
-    f = towl(f)
-    maxy = towl(miny)
-    miny = towl(maxy)
-    yticks = towl(yticks)
-
-    xlabel = r"$z,~\mathrm{mm}$"
-    ylabel = r"$\lambda,~\mathrm{nm}$"
-
-    xlabels = texify(unit*xticks/1E-3, digits=1)
-    ylabels = texify(yticks/1E-9)
-
-
 if not args.interactive:
-    figsize = [float(x) for x in args.figsize]
+    figsize = [float(x) for x in args.figsize.split(",")]
     filename = args.input.replace(".npz", "")
     filename = filename + "_fspectrum"
     publisher.init({"figure.figsize": figsize})
 
 plot.figure()
 plot.pcolormesh(x, f, ys, cmap="magma", rasterized=True)
-cb = plot.colorbar()
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)
 plot.clim(minc, maxc)
 plot.xticks(xticks, xlabels)
 plot.yticks(yticks, ylabels)
-cb.set_ticks(cticks)
 plot.xlabel(xlabel)
 plot.ylabel(ylabel)
 plot.axes().tick_params(direction="out")
+if args.colorbar:
+    cb = plot.colorbar()
+    cb.set_label("dB")
+    cb.set_ticks(cticks)
+    cb.set_ticklabels(clabels)
+
 
 if args.interactive:
     plot.show()

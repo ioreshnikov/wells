@@ -72,7 +72,7 @@ for key, curve in curves.items():
 
 
 # Third and final pass: plot the curves.
-publisher.init({"figure.figsize": (2.8, 2.8)})
+# publisher.init({"figure.figsize": (2.8, 2.8)})
 plot.figure()
 
 xmin = -4.0
@@ -104,4 +104,4 @@ plot.ylabel(r"$\max\left(\Im\,\lambda\right)$")
 axs.tick_params(direction="out")
 
 plot.show()
-publisher.publish("rates", args.ext)
+# publisher.publish("rates", args.ext)

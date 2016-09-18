@@ -44,8 +44,9 @@ def init(parameters=None):
         matplotlib.rcParams.update(parameters)
 
 
-def publish(prefix, extension):
-    plot.tight_layout(pad=0.5)
+def publish(prefix, extension, tight=True):
+    if tight:
+        plot.tight_layout(pad=0.5)
     plot.savefig(
         prefix + "." + extension,
         dpi=400 if extension == "pdf" else 200)

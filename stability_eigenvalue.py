@@ -19,6 +19,9 @@ parser.add_argument("-s", "--figsize",
                     help="Figure size",
                     type=str,
                     default=("2.8, 2.8"))
+parser.add_argument("-m", "--mark",
+                    help="Mark largest growth factor eigenvalue",
+                    action="store_true")
 parser.add_argument("--nx", "--xn",
                     help="Number of x ticks",
                     type=int,
@@ -46,6 +49,7 @@ args = parser.parse_args()
 
 
 workspace = scipy.load(args.input)
+delta = workspace["delta"]
 es = workspace["stability_eigenvalues"]
 n = es.imag.argmax()
 e = es[n]
@@ -67,8 +71,12 @@ if not args.interactive:
     filename = filename + "_stev"
     publisher.init({"figure.figsize": figsize})
 
+plot.title(r"$\delta_p=%.1f$" % delta, y=1.05)
 plot.scatter(es.real, es.imag, s=1, color="black")
-plot.scatter([e.real], [e.imag], s=6, color="red", marker="x")
+if args.mark:
+    plot.scatter([e.real], [e.imag], s=6, color="red", marker="x")
+else:
+    plot.scatter([e.real], [e.imag], s=1, color="black")
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)
 plot.xticks(xticks)

@@ -59,7 +59,7 @@ args = parser.parse_args()
 
 
 x = scipy.linspace(-32, +32, 2**10)
-f = scipy.linspace(-64, +64, 2**11)
+f = scipy.linspace(-64, +64, 2**9)
 ys = scipy.zeros((len(f), len(x)))
 
 u = 1/2 * x**2
@@ -134,7 +134,7 @@ if not args.interactive:
     filename = "linear_modes"
     publisher.init({"figure.figsize": figsize})
 
-plot.figure()
+fig = plot.figure()
 plot.pcolormesh(x, f, ys, cmap="magma", rasterized=True)
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)
@@ -142,6 +142,8 @@ plot.xticks(xticks, xlabels)
 plot.yticks(yticks, ylabels)
 plot.xlabel(xlabel)
 plot.ylabel(ylabel)
+plot.axes().yaxis.tick_right()
+plot.axes().yaxis.set_label_position("right")
 plot.axes().tick_params(direction="out")
 if args.colorbar:
     cb = plot.colorbar()

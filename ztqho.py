@@ -52,7 +52,7 @@ args = parser.parse_args()
 # Coordinate grid parameters.
 minx = -128
 maxx = +128
-nx = 2**14
+nx = 2**11
 dx = (minx - maxx) / (nx - 1)
 
 # Coordinate grid.
@@ -118,7 +118,7 @@ else:
 solution = optimize.newton_krylov(l0, initial)
 
 
-filename = ("mode=%d_delta=%.2f_pump=%.2E_loss=%.2E_%s.npz" %
+filename = ("mode=%d_delta=%.3f_pump=%.2E_loss=%.2E_%s.npz" %
             (args.n, args.delta, args.pump, args.loss, args.label))
 workspace = {}
 workspace["x"] = x

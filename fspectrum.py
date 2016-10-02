@@ -3,6 +3,7 @@
 
 import argparse
 import matplotlib.pyplot as plot
+import matplotlib.ticker as ticker
 import scipy
 import scipy.fftpack as fft
 
@@ -36,6 +37,22 @@ parser.add_argument("--nc", "--cn",
                     help="Number of colorbar ticks",
                     type=int,
                     default=4)
+parser.add_argument("--dx",
+                    help="Major x-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--dy",
+                    help="Major y-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--mdx",
+                    help="Minor x-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--mdy",
+                    help="Minor y-axis tick step",
+                    type=float,
+                    default=None)
 parser.add_argument("--minz", "--zmin", "--minx", "--xmin",
                     help="Minimum x coordinate",
                     type=float)
@@ -94,10 +111,13 @@ nm = 1.0
 if args.physical_units:
     mm = 1E-3
     nm = 1E-9
-minx = args.minz*mm if args.minz is not None else x.min()
-maxx = args.maxz*mm if args.maxz is not None else x.max()
-miny = args.minf*nm if args.minf is not None else f.min()
-maxy = args.maxf*nm if args.maxf is not None else f.max()
+x = x/mm
+f = f/nm
+
+minx = args.minz if args.minz is not None else x.min()
+maxx = args.maxz if args.maxz is not None else x.max()
+miny = args.minf if args.minf is not None else f.min()
+maxy = args.maxf if args.maxf is not None else f.max()
 maxc = 0
 minc = args.dbmin
 
@@ -126,32 +146,12 @@ ys = ys / ys.max()
 ys = 20 * scipy.log10(ys)
 
 
-xticks = scipy.linspace(minx, maxx, args.nx)
-yticks = scipy.linspace(miny, maxy, args.ny)
-cticks = scipy.linspace(minc, maxc, args.nc)
-
-
-def texify(ticks, digits=0):
-    labels = []
-    template = "$%d$"
-    if digits:
-        template = "$%%.%df$" % digits
-    for t in ticks:
-        labels.append(template % round(t, digits))
-    return labels
-
-
 if args.physical_units:
     xlabel = "$z,~\mathrm{mm}$"
     ylabel = "$\lambda,~\mathrm{nm}$"
-    xlabels = texify(xticks/mm, digits=1)
-    ylabels = texify(yticks/nm)
 else:
     xlabel = "$z$"
     ylabel = "$\omega$"
-    xlabels = texify(xticks)
-    ylabels = texify(yticks)
-clabels = texify(cticks)
 
 
 if not args.interactive:
@@ -161,21 +161,36 @@ if not args.interactive:
     publisher.init({"figure.figsize": figsize})
 
 plot.figure()
+axs = plot.subplot(1, 1, 1)
 plot.pcolormesh(x, f, ys, cmap="magma", rasterized=True)
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)
 plot.clim(minc, maxc)
-plot.xticks(xticks, xlabels)
-plot.yticks(yticks, ylabels)
 plot.xlabel(xlabel)
 plot.ylabel(ylabel)
-plot.axes().tick_params(direction="out")
+
+if args.nx is not None:
+    axs.xaxis.set_major_locator(
+        ticker.MaxNLocator(args.nx))
+if args.ny is not None:
+    axs.yaxis.set_major_locator(
+        ticker.MaxNLocator(args.ny))
+if args.dx is not None:
+    axs.xaxis.set_major_locator(
+        ticker.MultipleLocator(args.dx))
+if args.dy is not None:
+    axs.yaxis.set_major_locator(
+        ticker.MultipleLocator(args.dy))
+if args.mdx is not None:
+    axs.xaxis.set_minor_locator(
+        ticker.MultipleLocator(args.mdx))
+if args.mdy is not None:
+    axs.yaxis.set_minor_locator(
+        ticker.MultipleLocator(args.mdy))
+axs.tick_params(which="both", direction="out")
 if args.colorbar:
     cb = plot.colorbar()
     cb.set_label("dB")
-    cb.set_ticks(cticks)
-    cb.set_ticklabels(clabels)
-
 
 if args.interactive:
     plot.show()

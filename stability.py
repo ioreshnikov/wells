@@ -29,6 +29,11 @@ except:
     loss = 0
 
 
+x = x[::2]
+potential = potential[::2]
+solution = solution[::2]
+
+
 if args.trust:
     files = workspace.files
     if ("stability_eigenvalues" in files and

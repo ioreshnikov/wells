@@ -4,6 +4,7 @@
 import argparse
 import matplotlib.pyplot as plot
 import matplotlib.ticker as ticker
+import re
 import scipy
 
 import wells.publisher as publisher
@@ -52,16 +53,16 @@ parser.add_argument("--mdy",
                     help="Minor y-axis tick step",
                     type=float,
                     default=None)
-parser.add_argument("--minz", "--zmin", "--minx", "--xmin",
+parser.add_argument("--minx", "--xmin",
                     help="Minimum x coordinate",
                     type=float)
-parser.add_argument("--maxz", "--zmax", "--maxx", "--xmax",
+parser.add_argument("--maxx", "--xmax",
                     help="Maximum x coordinate",
                     type=float)
-parser.add_argument("--mint", "--tmin", "--miny", "--ymin",
+parser.add_argument("--miny", "--ymin",
                     help="Minimum y coordinate",
                     type=float)
-parser.add_argument("--maxt", "--tmax", "--maxy", "--ymax",
+parser.add_argument("--maxy", "--ymax",
                     help="Maximum y coordinate",
                     type=float)
 parser.add_argument("--dbmin", "--mindb",
@@ -79,16 +80,18 @@ parser.add_argument("-p", "--physical-units",
                     action="store_true")
 parser.add_argument("input",
                     help="Input file",
-                    type=str)
+                    type=str,
+                    nargs="+")
 args = parser.parse_args()
 
 
-workspace = scipy.load(args.input)
+workspace = scipy.load(args.input[0])
 t = workspace["t"]
 x = workspace["x"]
-ys = workspace["states"]
 bg = workspace["background"]
 delta = workspace["delta"]
+pump = workspace["pump"]
+loss = workspace["loss"]
 
 
 if args.physical_units:
@@ -108,25 +111,48 @@ if args.physical_units:
 x = x/mm
 t = t/ns
 
-minx = args.minz if args.minz is not None else x.min()
-maxx = args.maxz if args.maxz is not None else x.max()
-mint = args.mint if args.mint is not None else t.min()
-maxt = args.maxt if args.maxt is not None else t.max()
+miny = args.miny if args.miny is not None else x.min()
+maxy = args.maxy if args.maxy is not None else x.max()
 minc = args.dbmin
 maxc = 0
 
 
-window = (x > minx) & (x < maxx)
+window = (x > miny) & (x < maxy)
 x = x[window]
-ys = ys[:, window]
-
-
-if args.ssx:
-    x = x[::args.ssx]
-    ys = ys[:, ::args.ssx]
 if args.ssy:
-    t = t[::args.ssy]
-    ys = ys[::args.ssy, :]
+    x = x[::args.ssy]
+
+pattern = re.compile(r"mint=(.*?)_")
+def mint(filename):
+    match = pattern.search(filename)
+    if match:
+        return float(match.group(1))
+
+ts = []
+yss = []
+for n, filename in enumerate(sorted(args.input, key=mint)):
+    print("%d/%d: %s" % (n+1, len(args.input), filename))
+    workspace = scipy.load(filename)
+    t = workspace["t"]
+    ys = workspace["states"]
+    ys = ys[:, window]
+    if args.ssy:
+        ys = ys[:, ::args.ssy]
+    if args.ssx:
+        t = t[::args.ssx]
+        ys = ys[::args.ssx, :]
+    ts.append(t)
+    yss.append(ys)
+    if t.max() >= args.maxx:
+        break
+t = scipy.hstack(ts)
+ys = scipy.vstack(yss)
+print("Resulting image shape:", ys.shape)
+
+
+minx = args.minx if args.minx is not None else t.min()
+maxx = args.maxx if args.maxx is not None else t.max()
+
 
 ys = abs(ys)
 ys = ys / ys.max()
@@ -134,24 +160,28 @@ ys = 20 * scipy.log10(ys)
 
 
 if args.physical_units:
-    xlabel = "$z,~\mathrm{mm}$"
-    ylabel = "$t,~\mathrm{ns}$"
+    xlabel = "$t,~\mathrm{ns}$"
+    ylabel = "$z,~\mathrm{mm}$"
 else:
-    xlabel = "$z$"
-    ylabel = "$t$"
+    xlabel = "$t$"
+    ylabel = "$z$"
 
 
 if not args.interactive:
     figsize = [float(x) for x in args.figsize.split(",")]
-    filename = args.input.replace(".npz", "")
-    filename = filename + "_timedomain"
+    filename = ("delta=%.2f_"
+                "pump=%.2E_"
+                "loss=%.2E_"
+                "mint=%.2f_"
+                "maxt=%.2f_timedomain2"
+                % (delta, pump, loss, minx, maxx))
     publisher.init({"figure.figsize": figsize})
 
 plot.figure()
 axs = plot.subplot(1, 1, 1)
-plot.pcolormesh(x, t, ys, cmap="magma", rasterized=True)
+plot.pcolormesh(t, x, ys.T, cmap="magma", rasterized=True)
 plot.xlim(minx, maxx)
-plot.ylim(mint, maxt)
+plot.ylim(miny, maxy)
 plot.clim(minc, maxc)
 plot.xlabel(xlabel)
 plot.ylabel(ylabel)

@@ -36,22 +36,18 @@ parser.add_argument("--scale",
                     help="Initial guess scaling",
                     type=float,
                     default=0.0)
-parser.add_argument("--phase",
-                    help="Initial guess phase rotation",
-                    type=float,
-                    default=0.0)
 parser.add_argument("--input",
                     help="Read initial condition from a file",
                     type=str)
-parser.add_argument("--oversample",
+parser.add_argument("--interpolate",
                     help="Interpolate and oversample initial guess",
                     action="store_true")
 args = parser.parse_args()
 
 
 # Coordinate grid parameters.
-minx = -128
-maxx = +128
+minx = -32
+maxx = +32
 nx = 2**11
 dx = (minx - maxx) / (nx - 1)
 
@@ -98,16 +94,22 @@ initial = scipy.zeros(2*nx)
 if args.input:
     workspace = scipy.load(args.input)
     solution = workspace["solution"]
-    if args.oversample:
+    if args.interpolate:
         x_ = workspace["x"]
         real = solution.real
         imag = solution.imag
-        real = interpolate.interp1d(x_, real)(x)
-        imag = interpolate.interp1d(x_, imag)(x)
+        real = interpolate.interp1d(
+            x_, real,
+            fill_value=(real[0], real[-1]),
+            bounds_error=False)(x)
+        imag = interpolate.interp1d(
+            x_, imag,
+            fill_value=(imag[0], imag[-1]),
+            bounds_error=False)(x)
         initial[:nx] = real
         initial[nx:] = imag
     else:
-        solution = scipy.exp(1j * args.phase) * args.scale * solution
+        solution = args.scale * solution
         initial[:nx] = solution.real
         initial[nx:] = solution.imag
 else:

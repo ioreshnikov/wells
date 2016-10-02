@@ -27,7 +27,7 @@ pgf_parameters = {
     "ytick.labelsize": 8,
     "axes.linewidth": 0.5,
     "grid.linewidth": 0.5,
-    "lines.linewidth": 0.5
+    "lines.linewidth": 0.8
 }
 
 

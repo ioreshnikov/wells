@@ -10,16 +10,60 @@ import wells.util as util
 import wells.publisher as publisher
 
 import matplotlib.pyplot as plot
+import matplotlib.ticker as ticker
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input",
                     type=str,
                     nargs="+")
-parser.add_argument("--ext",
+parser.add_argument("-i", "--interactive",
+                    help="Interactive mode",
+                    action="store_true")
+parser.add_argument("-e", "--ext",
                     help="output file extension",
                     type=str,
                     default="png")
+parser.add_argument("-s", "--figsize",
+                    help="Figure size",
+                    type=str,
+                    default=("2.8, 2.8"))
+parser.add_argument("--nx", "--xn",
+                    help="Number of x ticks",
+                    type=int,
+                    default=None)
+parser.add_argument("--ny", "--yn",
+                    help="Number of y ticks",
+                    type=int,
+                    default=None)
+parser.add_argument("--dx",
+                    help="Major x-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--dy",
+                    help="Major y-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--mdx",
+                    help="Minor x-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--mdy",
+                    help="Minor y-axis tick step",
+                    type=float,
+                    default=None)
+parser.add_argument("--minx", "--xmin",
+                    help="Minimum x coordinate",
+                    type=float)
+parser.add_argument("--maxx", "--xmax",
+                    help="Maximum x coordinate",
+                    type=float)
+parser.add_argument("--miny", "--ymin",
+                    help="Minimum y coordinate",
+                    type=float)
+parser.add_argument("--maxy", "--ymax",
+                    help="Maximum y coordinate",
+                    type=float)
 args = parser.parse_args()
 
 
@@ -78,20 +122,35 @@ for key, curve in curves.items():
     curves[key] = deltas, energies, stability
 
 
+# Find minimum and maximum ranges in delta and energy.
+minxs, maxxs = [], []
+minys, maxys = [], []
+for key, (deltas, energies, _) in curves.items():
+    minxs.append(deltas.min())
+    maxxs.append(deltas.max())
+    minys.append(energies.min())
+    maxys.append(energies.max())
+
+minx = scipy.array(minxs).min()
+maxx = scipy.array(maxxs).max()
+miny = scipy.array(minys).min()
+maxy = scipy.array(maxys).max()
+
+minx = args.minx if args.minx is not None else minx
+maxx = args.maxx if args.maxx is not None else maxx
+miny = args.miny if args.miny is not None else miny
+maxy = args.maxy if args.maxy is not None else maxy
+
+
 # Third and final pass: plot the curves.
-publisher.init({"figure.figsize": (2.8, 2.8)})
-plot.figure()
-
-xmin = -3.0
-xmax = +3.0
-
-ymin = 00.0
-ymax = 20.0
-
-dx = 1.0
-dy = 3.4
+dx = 0.10 * (maxx - minx)
+dy = 0.10 * (maxy - miny)
 bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
 
+if not args.interactive:
+    figsize = [float(x) for x in args.figsize.split(",")]
+    publisher.init({"figure.figsize": figsize})
+plot.figure()
 axs = plot.subplot(1, 1, 1)
 for key, curve in curves.items():
     idx, mode, *_ = key
@@ -102,6 +161,7 @@ for key, curve in curves.items():
             energies,
             color="#7f7f7f",
             linestyle="dotted",
+            linewidth=0.6,
             zorder=1)
     else:
         # Stable branch.
@@ -125,27 +185,50 @@ for key, curve in curves.items():
         plot.plot(
             deltas_,
             energies_,
-            color="red",
+            color="gray",
             linestyle="solid",
+            linewidth=0.8,
             zorder=2)
-    if idx == 1 and mode % 2 == 0:
-        x = xmax - dx
-        y = energies[deltas == x]
-        if y > ymax - 2*dx or scipy.isnan(y):
-            f = interpolate.interp1d(energies, deltas)
-            y = ymax - dy
-            x = f(y)
-            if x < xmin + dx or x > xmax - dx:
-                continue
-        plot.text(x, y, str(mode),
-                  ha="center", va="center",
-                  bbox=bbox, fontsize="x-small")
-plot.xlim(xmin, xmax)
-plot.ylim(ymin, ymax)
-plot.xticks(scipy.arange(xmin, xmax + 1, 1))
-plot.yticks(scipy.arange(0, ymax + 5, 5))
+    # if idx == 1 and mode % 2 == 0:
+    #     x = maxx - dx
+    #     idx = abs(deltas - x).argmin()
+    #     y = energies[idx]
+    #     if y > maxy - dy or y < miny + dy:
+    #         y = maxy - dy
+    #         x = interpolate.interp1d(energies, deltas)(y)
+    #         idx = abs(deltas - x).argmin()
+    #         x = deltas[idx]
+    #         if x > maxx - dx or x < minx + dx:
+    #             continue
+    #     plot.text(x, y, str(mode),
+    #               ha="center", va="center",
+    #               bbox=bbox, fontsize="x-small")
 plot.xlabel("$\delta_{p}$")
-plot.ylabel("$E_{n}(\delta_p)$")
-axs.tick_params(direction="out")
-plot.show()
-publisher.publish("energies", args.ext)
+plot.ylabel("$E(\delta_p)$")
+plot.xlim(minx, maxx)
+plot.ylim(miny, maxy)
+
+if args.nx is not None:
+    axs.xaxis.set_major_locator(
+        ticker.MaxNLocator(args.nx))
+if args.ny is not None:
+    axs.yaxis.set_major_locator(
+        ticker.MaxNLocator(args.ny))
+if args.dx is not None:
+    axs.xaxis.set_major_locator(
+        ticker.MultipleLocator(args.dx))
+if args.dy is not None:
+    axs.yaxis.set_major_locator(
+        ticker.MultipleLocator(args.dy))
+if args.mdx is not None:
+    axs.xaxis.set_minor_locator(
+        ticker.MultipleLocator(args.mdx))
+if args.mdy is not None:
+    axs.yaxis.set_minor_locator(
+        ticker.MultipleLocator(args.mdy))
+axs.tick_params(which="both", direction="out")
+
+if args.interactive:
+    plot.show()
+else:
+    publisher.publish("energies", args.ext)

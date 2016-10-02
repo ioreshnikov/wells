@@ -4,12 +4,12 @@
 LANG=C;
 
 
-modes=`seq 0 1 6`;
+modes=`seq 10 1 20`;
 for mode in $modes; do
-    min=-$mode.5;
-    max=+5.0;
-    step=0.1;
-    deltas=`seq $min $step $max`;
+    start=-$mode.50;
+    stop=`expr -$mode + 5`;
+    step=0.10;
+    deltas=`seq $start $step $stop`;
 
     output=;
     for delta in $deltas; do

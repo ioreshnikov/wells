@@ -37,8 +37,14 @@ solution = solution[::2]
 if args.trust:
     files = workspace.files
     if ("stability_eigenvalues" in files and
-        "stability_eigenvectors" in files and
-        "stable" in files):
+        "stability_eigenvectors" in files):
+        eigenvalues = workspace["stability_eigenvalues"]
+        stable = all(eigenvalues.imag < 0)
+        workspace_ = {}
+        for name in workspace.files:
+            workspace_[name] = workspace[name]
+        workspace_["stable"] = stable
+        scipy.savez(args.input, **workspace)
         exit()
 
 
@@ -60,7 +66,7 @@ operator = sparse.bmat(
 
 k = 64
 eigenvalues, eigenvectors = linalg.eigs(operator, k=k, which="SM")
-stable = all(eigenvalues.imag < 1E-6)
+stable = all(eigenvalues.imag < 0)
 
 
 workspace_ = {}

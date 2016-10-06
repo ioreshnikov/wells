@@ -185,9 +185,9 @@ for key, curve in curves.items():
         plot.plot(
             deltas_,
             energies_,
-            color="gray",
+            color="red",
             linestyle="solid",
-            linewidth=0.8,
+            linewidth=0.5,
             zorder=2)
     # if idx == 1 and mode % 2 == 0:
     #     x = maxx - dx

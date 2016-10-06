@@ -122,7 +122,7 @@ maxc = 0
 minc = args.dbmin
 
 
-window = (x > minx) & (x < maxx)
+window = (x >= minx) & (x <= maxx)
 x = x[window]
 ys = ys[:, window]
 
@@ -133,13 +133,13 @@ if args.ssx:
 ys = fft.fft(ys, axis=0)
 ys = fft.fftshift(ys, axes=[0])
 
-window = (f > miny) & (f < maxy)
+window = (f >= miny) & (f <= maxy)
 f = f[window]
 ys = ys[window, :]
 
 if args.ssy:
-    f = f[::args.ssy]
-    ys = ys[::args.ssy, :]
+    f = f[1::args.ssy]
+    ys = ys[1::args.ssy, :]
 
 ys = abs(ys)
 ys = ys / ys.max()
@@ -162,6 +162,9 @@ if not args.interactive:
 
 plot.figure()
 axs = plot.subplot(1, 1, 1)
+plot.title("$%d \le t < %d$"
+           % (scipy.floor(t.min()),
+              scipy.floor(t.max())))
 plot.pcolormesh(x, f, ys, cmap="magma", rasterized=True)
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)

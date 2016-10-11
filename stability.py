@@ -41,7 +41,7 @@ if args.trust:
         eigenvalues = workspace["stability_eigenvalues"]
         stable = all(eigenvalues.imag < 0)
         workspace_ = {}
-        for name in workspace.files:
+        for name in files:
             workspace_[name] = workspace[name]
         workspace_["stable"] = stable
         scipy.savez(args.input, **workspace)

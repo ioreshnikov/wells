@@ -34,9 +34,9 @@ loss=0.001;
 # done
 
 
-mode=16;
-label="$mode+";
-# scale=-0.90;
+mode=18;
+label="$mode-";
+scale=0.90;
 scale=1.00;
 
 start=-17.97;
@@ -44,8 +44,7 @@ stop=-20.00;
 step=-0.001;
 deltas=`seq $start $step $stop`;
 
-# output="Lower Conservative/mode=${mode}_delta=${start}.npz";
-# output="Dissipative/mode=${mode}_delta=$(printf '%.3f' $start)_*_${label}.npz";
+output="Conservative/mode=${mode}_delta=${start}.npz";
 output="mode=${mode}_delta=$(printf '%.3f' $start)_*_${label}.npz";
 for delta in $deltas; do
     command="./ztqho.py --pump $pump --loss $loss --n $mode --delta $delta --scale $scale --label $label";

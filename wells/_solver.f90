@@ -113,8 +113,8 @@ contains
     double complex, dimension(:), intent(in) :: y0
     double precision, intent(in) :: dt
 
-    double precision, dimension(:), intent(in) :: betas, u, absrb
-    double precision, intent(in) :: gamma, pump, loss, bg
+    double precision, dimension(:), intent(in) :: betas, u, pump, absrb
+    double precision, intent(in) :: gamma, loss, bg
 
     double complex, dimension(size(t), size(x)), intent(out) :: ys
 

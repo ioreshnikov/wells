@@ -17,6 +17,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input",
                     type=str,
                     nargs="+")
+parser.add_argument("-l", "--label",
+                    help="Panel label",
+                    type=str)
 parser.add_argument("-i", "--interactive",
                     help="Interactive mode",
                     action="store_true")
@@ -69,7 +72,7 @@ args = parser.parse_args()
 
 # Regular expressions for file names.
 patterns = [
-    re.compile("mode=(\d+)_delta=(.*)_pump=(.*)_loss=(.*)_(.*).npz"),
+    re.compile("mode=(\d+)_delta=(.*)_pa=(.*)_pm=(.*)_pw=(.*)_loss=(.*)_(.*).npz"),
     re.compile("mode=(\d+)_delta=(.*).npz")]
 
 
@@ -84,12 +87,12 @@ for filename in args.input:
         groups = match.groups()
         if len(groups) == 2:
             mode, delta = groups
-            pump = loss = 0
+            pa = pm = pw = loss = 0
             label = None
-        if len(groups) == 5:
-            mode, delta, pump, loss, label = groups
+        if len(groups) == 7:
+            mode, delta, pa, pm, pw, loss, label = groups
         mode = int(mode)
-        delta, pump, loss = map(float, (delta, pump, loss))
+        delta, pa, pm, pw, loss = map(float, (delta, pa, pm, pw, loss))
 
         workspace = scipy.load(filename)
 
@@ -99,7 +102,7 @@ for filename in args.input:
         except:
             pass
 
-        key = (idx, mode, pump, loss, label)
+        key = (idx, mode, pa, pm, pw, loss, label)
 
         if key not in curves:
             curves[key] = [], [], []
@@ -145,11 +148,12 @@ maxy = args.maxy if args.maxy is not None else maxy
 # Third and final pass: plot the curves.
 dx = 0.10 * (maxx - minx)
 dy = 0.10 * (maxy - miny)
-bbox = dict(boxstyle="circle, pad=0.2", lw="0.5", fc="white")
+bbox = dict(boxstyle="circle, pad=0.1", lw="0.4", fc="white")
 
 if not args.interactive:
     figsize = [float(x) for x in args.figsize.split(",")]
     publisher.init({"figure.figsize": figsize})
+
 plot.figure()
 axs = plot.subplot(1, 1, 1)
 for key, curve in curves.items():
@@ -185,26 +189,29 @@ for key, curve in curves.items():
         plot.plot(
             deltas_,
             energies_,
-            color="red",
+            color="black",
             linestyle="solid",
-            linewidth=0.5,
+            # linewidth=0.5,
             zorder=2)
-    # if idx == 1 and mode % 2 == 0:
-    #     x = maxx - dx
-    #     idx = abs(deltas - x).argmin()
-    #     y = energies[idx]
-    #     if y > maxy - dy or y < miny + dy:
-    #         y = maxy - dy
-    #         x = interpolate.interp1d(energies, deltas)(y)
-    #         idx = abs(deltas - x).argmin()
-    #         x = deltas[idx]
-    #         if x > maxx - dx or x < minx + dx:
-    #             continue
-    #     plot.text(x, y, str(mode),
-    #               ha="center", va="center",
-    #               bbox=bbox, fontsize="x-small")
-plot.xlabel("$\delta_{p}$")
-plot.ylabel("$E(\delta_p)$")
+    if idx == 1 and mode % 2 == 0:
+        x = maxx - dx
+        idx = abs(deltas - x).argmin()
+        y = energies[idx]
+        if y > maxy - dy or y < miny + dy:
+            y = maxy - dy
+            x = interpolate.interp1d(energies, deltas)(y)
+            idx = abs(deltas - x).argmin()
+            x = deltas[idx]
+            if x > maxx - dx or x < minx + dx:
+                continue
+        plot.text(x, y, str(mode),
+                  ha="center", va="center",
+                  bbox=bbox, fontsize="xx-small")
+if args.label is not None:
+    plot.text(maxx - dx, dy, "(%s)" % args.label,
+              ha="center", va="center")
+plot.xlabel(r"$\delta_{p}$")
+# plot.ylabel(r"$\scriptstyle{\int |\psi|^2 dz}$")
 plot.xlim(minx, maxx)
 plot.ylim(miny, maxy)
 

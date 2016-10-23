@@ -20,10 +20,18 @@ parser.add_argument("--loss",
                     help="Linear losses",
                     type=float,
                     default=0.0)
-parser.add_argument("--pump",
-                    help="Pump",
+parser.add_argument("--pa",
+                    help="Pump amplitude",
+                    type=float,
+                    default=1.0)
+parser.add_argument("--pm",
+                    help="Pump location",
                     type=float,
                     default=0.0)
+parser.add_argument("--pw",
+                    help="Pump width",
+                    type=float,
+                    default=1.0)
 parser.add_argument("--n",
                     help="Mode number",
                     type=int,
@@ -35,7 +43,7 @@ parser.add_argument("--label",
 parser.add_argument("--scale",
                     help="Initial guess scaling",
                     type=float,
-                    default=0.0)
+                    default=1.0)
 parser.add_argument("--input",
                     help="Read initial condition from a file",
                     type=str)
@@ -66,8 +74,9 @@ laplacian = util.laplacian(nx, dx)
 potential = sparse.diags(u, 0, (nx, nx))
 delta = args.delta * sparse.eye(nx, nx)
 loss = args.loss * sparse.eye(nx, nx)
-pump = args.pump * scipy.ones(2*nx)
-pump[nx:] = 0
+
+pump = scipy.zeros(2*nx)
+pump[:nx] = args.pa * scipy.exp(- (x - args.pm)**2 / args.pw**2)
 
 laplacian = sparse.bmat([[laplacian, None], [None, laplacian]])
 potential = sparse.bmat([[potential, None], [None, potential]])
@@ -120,15 +129,20 @@ else:
 solution = optimize.newton_krylov(l0, initial)
 
 
-filename = ("mode=%d_delta=%.3f_pump=%.2E_loss=%.2E_%s.npz" %
-            (args.n, args.delta, args.pump, args.loss, args.label))
+filename = ("mode=%d_delta=%.3f_pa=%.2E_pm=%.2E_pw=%.2E_loss=%.2E_%s.npz" %
+            (args.n, args.delta,
+             args.pa, args.pm, args.pw,
+             args.loss, args.label))
 workspace = {}
 workspace["x"] = x
 workspace["potential"] = u
 workspace["n"] = args.n
 workspace["delta"] = args.delta
 workspace["solution"] = solution[:nx] + 1j * solution[nx:]
-workspace["pump"] = args.pump
+workspace["pa"] = args.pa
+workspace["pm"] = args.pm
+workspace["pw"] = args.pw
+workspace["pump"] = pump
 workspace["loss"] = args.loss
 
 

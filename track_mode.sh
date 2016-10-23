@@ -2,12 +2,13 @@
 
 
 LANG=C;
+max_energy=30;
+modes=`seq 0 1 20`;
 
 
-modes=`seq 10 1 20`;
 for mode in $modes; do
     start=-$mode.50;
-    stop=`expr -$mode + 5`;
+    stop=`expr -$mode + 10`;
     step=0.10;
     deltas=`seq $start $step $stop`;
 
@@ -21,6 +22,12 @@ for mode in $modes; do
         output=`$command`;
         if [ -z "$output" ]; then
             exit
+        fi
+
+        energy=`./energy.py $output`;
+        need_exit=`echo "$energy > $max_energy" | bc -l`;
+        if [ $need_exit -eq 1 ]; then
+            break;
         fi
     done
 done
